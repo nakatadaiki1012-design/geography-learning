@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>地理ラボ</title>
+<meta name="description" content="地理総合・地理探究の授業で使える、地図・気候・地形・人口を動かして考える学習アプリ">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@700;800&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+/* 見た目：地図帳のイメージ。紙の色の背景に経緯線、明朝体の見出し、藍（アクセント）と朱（強調） */
+:root {
+  --bg: #f2eee3;
+  --panel: #fffdf7;
+  --ink: #1c2836;
+  --muted: #5b6676;
+  --line: #d8d0bd;
+  --chip: #ebe5d5;
+  --accent: #1f5f8b;
+  --accent-ink: #ffffff;
+  --shu: #c8442a;
+  --ok: #2c8350;
+  --sea: #d4e7f0;
+  --sea2: #bcd9e8;
+  --land: #ede6d2;
+  --land-line: #a99e84;
+  --grat: rgba(31, 95, 139, 0.16);
+  --nodata: #ddd6c4;
+  --font-display: "Shippori Mincho B1", "Hiragino Mincho ProN", "Yu Mincho", serif;
+  --font-body: "Zen Kaku Gothic New", "Hiragino Sans", "Yu Gothic", "Meiryo", sans-serif;
+  --font-data: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+  --r: 12px;
+  --top-h: 96px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e1822; --panel: #142230; --ink: #e4ebf2; --muted: #93a3b4; --line: #26394b; --chip: #1c2e3f;
+    --accent: #6fb2e0; --accent-ink: #0e1822; --shu: #ff8a65; --ok: #5fd18f;
+    --sea: #0f2738; --sea2: #133246; --land: #2c3a34; --land-line: #55685e; --grat: rgba(111, 178, 224, 0.14); --nodata: #3a463f;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e1822; --panel: #142230; --ink: #e4ebf2; --muted: #93a3b4; --line: #26394b; --chip: #1c2e3f;
+  --accent: #6fb2e0; --accent-ink: #0e1822; --shu: #ff8a65; --ok: #5fd18f;
+  --sea: #0f2738; --sea2: #133246; --land: #2c3a34; --land-line: #55685e; --grat: rgba(111, 178, 224, 0.14); --nodata: #3a463f;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0; color: var(--ink); font-family: var(--font-body); font-size: 15px; line-height: 1.65;
+  background-color: var(--bg);
+  background-image:
+    repeating-linear-gradient(0deg, var(--grat) 0 1px, transparent 1px 48px),
+    repeating-linear-gradient(90deg, var(--grat) 0 1px, transparent 1px 48px);
+  min-height: 100vh;
+}
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+button:disabled { cursor: default; opacity: .55; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+h1, h2, h3, h4 { font-family: var(--font-display); line-height: 1.35; }
+sub, sup { font-size: .7em; line-height: 0; }
+
+/* --- 上のバー --- */
+.top {
+  position: sticky; top: 0; z-index: 30; background: var(--panel); border-bottom: 1px solid var(--line);
+  padding: 8px max(16px, env(safe-area-inset-right, 0px)) 6px max(16px, env(safe-area-inset-left, 0px));
+}
+.top-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.brand { margin: 0; font-size: 22px; font-weight: 800; letter-spacing: .04em; white-space: nowrap; }
+.brand b { color: var(--accent); }
+.brand small { font-family: var(--font-body); font-size: 12px; font-weight: 500; color: var(--muted); margin-left: 8px; letter-spacing: 0; }
+.grpnav { display: flex; gap: 4px; flex-wrap: wrap; }
+.grpnav button { border: 1px solid var(--line); background: var(--panel); border-radius: 999px; padding: 5px 14px; font-weight: 700; font-size: 14px; }
+.grpnav button[aria-current="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.top-tools { margin-left: auto; display: flex; gap: 6px; }
+.icon-btn { border: 1px solid var(--line); background: var(--panel); border-radius: 10px; padding: 4px 10px; font-size: 13px; }
+.secnav { display: flex; gap: 2px; overflow-x: auto; margin-top: 6px; scrollbar-width: thin; }
+.secnav button { border: 0; background: transparent; padding: 5px 12px; border-radius: 999px; font-size: 14px; color: var(--muted); white-space: nowrap; font-weight: 500; }
+.secnav button:hover { color: var(--ink); }
+.secnav button[aria-current="true"] { background: var(--ink); color: var(--panel); }
+
+/* --- 道具の画面（左に地図、右に説明） --- */
+main { padding: 12px max(16px, env(safe-area-inset-right, 0px)) 24px max(16px, env(safe-area-inset-left, 0px)); }
+.tool { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 12px; height: calc(100vh - var(--top-h) - 36px); min-height: 520px; }
+.stage { position: relative; background: var(--panel); border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; min-height: 0; display: flex; flex-direction: column; }
+.stage > svg, .stage .svgwrap > svg { width: 100%; height: 100%; display: block; touch-action: none; user-select: none; -webkit-user-select: none; }
+.svgwrap { flex: 1; min-height: 0; position: relative; }
+.side { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r); overflow-y: auto; padding: 14px 16px 18px; min-height: 0; }
+.side h2 { font-size: 20px; margin: 0 0 4px; }
+.side h3 { font-size: 16px; margin: 16px 0 6px; padding-bottom: 3px; border-bottom: 1px solid var(--line); }
+.lead { color: var(--muted); font-size: 13px; margin: 0 0 8px; }
+.stage-bar { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; padding: 8px 10px; border-bottom: 1px solid var(--line); background: var(--panel); }
+.stage-foot { padding: 6px 10px; border-top: 1px solid var(--line); font-size: 12px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 4px 14px; align-items: center; }
+.overlay-note { position: absolute; left: 10px; bottom: 10px; background: color-mix(in srgb, var(--panel) 90%, transparent); border: 1px solid var(--line); border-radius: 10px; padding: 6px 10px; font-size: 12px; max-width: min(420px, 80%); pointer-events: none; }
+.overlay-note.right { left: auto; right: 10px; }
+
+/* --- 部品 --- */
+.seg { display: inline-flex; flex-wrap: wrap; gap: 4px; }
+.seg button, .chip { border: 1px solid var(--line); background: var(--panel); border-radius: 999px; padding: 4px 11px; font-size: 13px; white-space: nowrap; }
+.seg button[aria-pressed="true"], .chip[aria-pressed="true"] { background: var(--ink); color: var(--panel); border-color: var(--ink); }
+.btn { border: 1px solid var(--accent); background: var(--accent); color: var(--accent-ink); border-radius: 10px; padding: 7px 14px; font-weight: 700; font-size: 14px; }
+.btn.ghost { background: transparent; color: var(--accent); }
+.btn.shu { background: var(--shu); border-color: var(--shu); color: #fff; }
+.btn.small { padding: 4px 10px; font-size: 13px; }
+.row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.row + .row { margin-top: 8px; }
+label.f { display: block; font-size: 12px; color: var(--muted); margin: 8px 0 2px; }
+select, input[type="number"], input[type="text"], textarea { border: 1px solid var(--line); background: var(--bg); border-radius: 8px; padding: 6px 8px; font-size: 15px; max-width: 100%; }
+textarea { width: 100%; min-height: 96px; resize: vertical; line-height: 1.6; }
+input[type="range"] { width: 100%; accent-color: var(--accent); }
+.slider-row { display: grid; grid-template-columns: 92px minmax(0, 1fr) 70px; gap: 8px; align-items: center; font-size: 13px; }
+.slider-row output { font-family: var(--font-data); text-align: right; font-size: 13px; }
+.card { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; background: var(--bg); margin: 8px 0; }
+.card.think { border-color: var(--shu); border-left-width: 5px; background: color-mix(in srgb, var(--shu) 6%, var(--panel)); }
+.card.think > b:first-child { color: var(--shu); }
+.card.ok { border-color: var(--ok); border-left-width: 5px; }
+.card.ng { border-color: var(--shu); border-left-width: 5px; }
+.kv { display: grid; grid-template-columns: auto 1fr; gap: 2px 12px; font-size: 14px; margin: 6px 0; }
+.kv dt { color: var(--muted); }
+.kv dd { margin: 0; font-family: var(--font-data); }
+.kv dd.t { font-family: var(--font-body); }
+table.tbl { border-collapse: collapse; width: 100%; font-size: 13px; margin: 6px 0; }
+.tbl th, .tbl td { border-bottom: 1px solid var(--line); padding: 4px 6px; text-align: left; }
+.tbl td.n { font-family: var(--font-data); text-align: right; }
+.tbl th { color: var(--muted); font-weight: 500; }
+.tag { display: inline-block; font-size: 11px; padding: 0 7px; border-radius: 999px; background: var(--chip); color: var(--muted); margin: 0 4px 2px 0; }
+.tag.v { background: color-mix(in srgb, var(--accent) 16%, var(--panel)); color: var(--accent); font-weight: 700; }
+.badge { display: inline-block; font-family: var(--font-data); font-weight: 600; padding: 1px 8px; border-radius: 6px; color: #fff; }
+.legend { display: flex; flex-wrap: wrap; gap: 4px 10px; font-size: 12px; align-items: center; }
+.legend i { display: inline-block; width: 14px; height: 10px; border-radius: 2px; margin-right: 3px; vertical-align: -1px; border: 1px solid rgba(0,0,0,.15); }
+.warn { color: var(--shu); font-weight: 700; }
+.muted { color: var(--muted); }
+.small { font-size: 12px; }
+.mono { font-family: var(--font-data); }
+details.more { margin: 8px 0; }
+details.more summary { cursor: pointer; color: var(--accent); font-weight: 700; font-size: 14px; }
+.choices { display: grid; gap: 6px; margin: 8px 0; }
+.choices button { text-align: left; border: 1px solid var(--line); background: var(--panel); border-radius: 10px; padding: 8px 12px; font-size: 15px; }
+.choices button:hover:not(:disabled) { border-color: var(--accent); }
+.choices button.is-right { border-color: var(--ok); background: color-mix(in srgb, var(--ok) 14%, var(--panel)); font-weight: 700; }
+.choices button.is-wrong { border-color: var(--shu); background: color-mix(in srgb, var(--shu) 12%, var(--panel)); }
+.choices.grid2 { grid-template-columns: 1fr 1fr; }
+.hanko { display: inline-grid; place-items: center; width: 56px; height: 56px; border: 3px solid var(--shu); color: var(--shu); border-radius: 50%; font-family: var(--font-display); font-weight: 800; font-size: 18px; transform: rotate(-12deg); }
+.mapsvg .country { stroke: var(--land-line); stroke-width: .5; vector-effect: non-scaling-stroke; }
+.mapsvg .sphere { fill: var(--sea); }
+.mapsvg .grat { fill: none; stroke: var(--grat); stroke-width: .6; vector-effect: non-scaling-stroke; }
+.mapsvg .grat.strong { stroke: color-mix(in srgb, var(--accent) 45%, transparent); }
+.mapsvg .lbl { font-size: 11px; fill: var(--ink); paint-order: stroke; stroke: var(--panel); stroke-width: 3px; stroke-linejoin: round; pointer-events: none; }
+.mapsvg text { font-family: var(--font-body); }
+.tip { position: absolute; pointer-events: none; background: var(--ink); color: var(--panel); font-size: 12px; padding: 4px 8px; border-radius: 6px; white-space: nowrap; transform: translate(-50%, -130%); z-index: 5; }
+.chart text { font-family: var(--font-data); font-size: 10px; fill: var(--muted); }
+.chart .axis line, .chart .axis path { stroke: var(--line); }
+.flow { list-style: none; padding: 0; margin: 6px 0; counter-reset: f; }
+.flow li { position: relative; padding: 6px 8px 6px 34px; border: 1px solid var(--line); border-radius: 8px; margin-bottom: 6px; font-size: 14px; background: var(--panel); }
+.flow li::before { counter-increment: f; content: counter(f); position: absolute; left: 8px; top: 7px; width: 18px; height: 18px; border-radius: 50%; background: var(--chip); font-size: 11px; display: grid; place-items: center; font-family: var(--font-data); }
+.flow li.on { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 9%, var(--panel)); }
+.flow li.on::before { background: var(--accent); color: var(--accent-ink); }
+.flow li.dim { opacity: .45; }
+
+/* --- 授業モード --- */
+.lessons { max-width: 1180px; margin: 0 auto; }
+.lesson-menu { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px; }
+.lesson-menu h3 { grid-column: 1 / -1; margin: 18px 0 0; font-size: 18px; }
+.lesson-menu h3 small { font-family: var(--font-body); font-size: 12px; color: var(--muted); font-weight: 500; margin-left: 6px; }
+.lcard { text-align: left; border: 1px solid var(--line); background: var(--panel); border-radius: var(--r); padding: 10px 12px; display: grid; gap: 2px; position: relative; }
+.lcard:hover { border-color: var(--accent); }
+.lcard .no { font-family: var(--font-data); font-size: 12px; color: var(--accent); font-weight: 600; }
+.lcard .tt { font-family: var(--font-display); font-weight: 800; font-size: 16px; }
+.lcard .q { font-size: 12px; color: var(--muted); }
+.lcard .st { position: absolute; right: 10px; top: 8px; font-size: 13px; }
+.lesson { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r); padding: 18px clamp(14px, 3vw, 34px) 22px; }
+.lesson-head { display: flex; gap: 12px; align-items: flex-start; flex-wrap: wrap; }
+.lesson-head h2 { margin: 0; font-size: clamp(22px, 3vw, 30px); }
+.lesson-head .no { font-family: var(--font-data); color: var(--accent); font-weight: 600; }
+.lesson-q { margin: 10px 0 12px; padding: 10px 14px; border-radius: 10px; background: color-mix(in srgb, var(--accent) 9%, var(--panel)); border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--line)); font-size: 17px; }
+.lesson-q b { color: var(--accent); }
+.tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin: 6px 0 14px; flex-wrap: wrap; }
+.tabs button { border: 0; background: transparent; padding: 8px 14px; font-weight: 700; color: var(--muted); border-bottom: 3px solid transparent; margin-bottom: -1px; }
+.tabs button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--shu); }
+.slide { font-size: clamp(16px, 1.6vw, 19px); line-height: 1.85; min-height: 300px; }
+.slide h3 { font-size: clamp(20px, 2.2vw, 26px); margin: 0 0 10px; }
+.slide ul { padding-left: 1.3em; }
+.slide li { margin: 4px 0; }
+.slide .key { background: linear-gradient(transparent 60%, color-mix(in srgb, var(--shu) 28%, transparent) 60%); font-weight: 700; }
+.slide .box { border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px; background: var(--bg); margin: 10px 0; }
+.slide .point { border-left: 5px solid var(--shu); padding: 8px 14px; background: color-mix(in srgb, var(--shu) 7%, var(--panel)); border-radius: 0 10px 10px 0; margin: 10px 0; }
+.slide-nav { display: flex; justify-content: space-between; align-items: center; margin-top: 16px; gap: 8px; flex-wrap: wrap; }
+.dots { display: flex; gap: 5px; }
+.dots i { width: 9px; height: 9px; border-radius: 50%; background: var(--line); }
+.dots i.on { background: var(--shu); }
+.embed .tool { height: min(78vh, 760px); }
+.views { display: flex; flex-wrap: wrap; gap: 4px; margin: 6px 0; }
+
+@media (max-width: 900px) {
+  :root { --top-h: 0px; }
+  .tool { grid-template-columns: 1fr; height: auto; min-height: 0; }
+  .stage { height: auto; min-height: 0; }
+  .stage > svg, .stage .svgwrap > svg { height: auto; max-height: 75vh; }
+  .side { overflow: visible; }
+  .embed .tool { height: auto; }
+  .brand small { display: none; }
+  .choices.grid2 { grid-template-columns: 1fr; }
+}
+@media print {
+  .top { position: static; }
+}
+</style>
+</head>
+<body>
+<header class="top" id="top">
+  <div class="top-row">
+    <h1 class="brand">地理<b>ラボ</b><small>地図で見て、動かして、考える ― 地理総合・地理探究</small></h1>
+    <nav class="grpnav" id="grpnav" aria-label="モード"></nav>
+    <div class="top-tools">
+      <button type="button" class="icon-btn" id="themeBtn" aria-label="明るさの切りかえ">◐ 明るさ</button>
+    </div>
+  </div>
+  <nav class="secnav" id="secnav" aria-label="分野"></nav>
+</header>
+<main id="main"></main>
+
+<script src="vendor/d3.min.js"></script>
+<script src="vendor/topojson-client.min.js"></script>
+<script src="vendor/world-110m.js"></script>
+<script src="js/data.js"></script>
+<script src="js/core.js"></script>
+<script src="js/tool-globe.js"></script>
+<script src="js/tool-climate.js"></script>
+<script src="js/tool-stats.js"></script>
+<script src="js/tool-landform.js"></script>
+<script src="js/tool-time.js"></script>
+<script src="js/tool-terrain.js"></script>
+<script src="js/tool-pop.js"></script>
+<script src="js/challenge.js"></script>
+<script src="js/lessons.js"></script>
+<script src="js/lessons-tankyu.js"></script>
+<script src="js/lesson-view.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
