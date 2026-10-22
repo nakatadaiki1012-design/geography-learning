@@ -41,9 +41,9 @@ function setTopHeight() { document.documentElement.style.setProperty('--top-h', 
 
 // 明るさの切りかえ（自動 → 明るい → 暗い）
 (function theme() {
-  const order = ['auto', 'light', 'dark'], label = { auto: '◐ 自動', light: '☀ 明るい', dark: '☾ 暗い' };
+  const order = ['auto', 'light', 'dark'], label = { auto: '◐<span class="lbl"> 自動</span>', light: '☀<span class="lbl"> 明るい</span>', dark: '☾<span class="lbl"> 暗い</span>' };
   let t = store.get('theme', 'auto');
-  const apply = () => { if (t === 'auto') document.documentElement.removeAttribute('data-theme'); else document.documentElement.setAttribute('data-theme', t); $('#themeBtn').textContent = label[t]; };
+  const apply = () => { if (t === 'auto') document.documentElement.removeAttribute('data-theme'); else document.documentElement.setAttribute('data-theme', t); $('#themeBtn').innerHTML = label[t]; };
   $('#themeBtn').addEventListener('click', () => { t = order[(order.indexOf(t) + 1) % 3]; store.set('theme', t); apply(); });
   apply();
 })();

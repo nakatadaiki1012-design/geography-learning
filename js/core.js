@@ -90,7 +90,54 @@ function toolShell(container, { bar = true, foot = false } = {}) {
     <section class="stage">${bar ? '<div class="stage-bar"></div>' : ''}<div class="svgwrap"></div>${foot ? '<div class="stage-foot"></div>' : ''}</section>
     <aside class="side"></aside></div>`);
   container.appendChild(root);
-  return { root, stage: $('.stage', root), bar: $('.stage-bar', root), wrap: $('.svgwrap', root), foot: $('.stage-foot', root), side: $('.side', root) };
+  const side = $('.side', root);
+  mobileTabs(side);
+  return { root, stage: $('.stage', root), bar: $('.stage-bar', root), wrap: $('.svgwrap', root), foot: $('.stage-foot', root), side };
+}
+
+// スマホでは、説明パネルを見出しごとのタブに分けて、スクロールしなくても見られるようにする
+const MOBILE = window.matchMedia('(max-width: 900px)');
+function mobileTabs(side) {
+  const mo = new MutationObserver(() => tabify());
+  function tabify() {
+    if (!MOBILE.matches) return;
+    mo.disconnect();
+    const bar = $(':scope > .stabs', side);
+    if (bar) {
+      // あとから足された部品は、今開いているタブに入れる
+      const cur = $(':scope > .spane:not([hidden])', side);
+      Array.from(side.children).filter(c => !c.classList.contains('stabs') && !c.classList.contains('spane')).forEach(c => cur && cur.appendChild(c));
+    } else {
+      const groups = [{ name: '説明', items: [] }];
+      Array.from(side.children).forEach(c => {
+        if (c.tagName === 'H3') groups.push({ name: c.textContent.replace(/（.*?）/g, ''), items: [c] });
+        else if (c.classList.contains('think') && !c.classList.contains('card')) { if (c.childElementCount) groups.push({ name: '考えよう', items: [c], think: true }); }
+        else groups[groups.length - 1].items.push(c);
+      });
+      const gs = groups.filter(g => g.items.length && g.items.some(x => x.tagName !== 'H3' || g.items.length > 1));
+      if (gs.length > 1) {
+        const tabs = el('<div class="stabs" role="tablist"></div>');
+        const want = gs.some(g => g.name === side._tab) ? side._tab : gs[0].name;
+        side.innerHTML = '';
+        side.appendChild(tabs);
+        gs.forEach(g => {
+          const pane = el('<div class="spane"></div>');
+          g.items.forEach(x => pane.appendChild(x));
+          pane.hidden = g.name !== want;
+          const b = el(`<button type="button" class="${g.think ? 'th' : ''}" aria-selected="${g.name === want}">${esc(g.name)}</button>`);
+          b.addEventListener('click', () => {
+            side._tab = g.name;
+            $$(':scope > .spane', side).forEach(p => { p.hidden = p !== pane; });
+            $$('button', tabs).forEach(x => x.setAttribute('aria-selected', String(x === b)));
+            side.scrollTop = 0;
+          });
+          tabs.appendChild(b); side.appendChild(pane);
+        });
+      }
+    }
+    mo.observe(side, { childList: true });
+  }
+  mo.observe(side, { childList: true });
 }
 
 function seg(options, value, onChange) {

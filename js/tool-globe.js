@@ -30,7 +30,7 @@ registerTool('globe', {
       tissot: params.tissot ?? false, great: true, rhumb: params.rhumb ?? (params.proj === 'mercator'), compass: params.compass ?? false
     };
     const ui = toolShell(container, { foot: true });
-    const W = 960, H = 560;
+    let W = 960; const H = 560;
     const svg = d3.select(ui.wrap).append('svg').attr('viewBox', `0 0 ${W} ${H}`);
     const tip = el('<div class="tip" hidden></div>'); ui.wrap.appendChild(tip);
 
@@ -42,13 +42,15 @@ registerTool('globe', {
     let proj;
     function setupProj() {
       const def = PROJS.find(p => p.id === S.proj);
+      W = MOBILE.matches && ['globe', 'azeq', 'gnomonic'].includes(S.proj) ? H : 960;
+      svg.attr('viewBox', `0 0 ${W} ${H}`);
       proj = def.make();
       if (def.drag === 'center' || def.drag === 'rotate') {
         if (def.drag === 'center') { const c = PLACE[S.from]; S.rotate = [-c.lon, -c.lat, 0]; }
         proj.rotate(S.rotate);
       } else proj.rotate([S.rotate[0], 0, 0]);
       if (S.proj === 'mercator') { proj.scale(W / (2 * Math.PI) * 0.98).translate([W / 2, H / 2 + 40]).clipExtent([[0, 0], [W, H]]); }
-      else if (S.proj === 'gnomonic') { proj.scale(260).translate([W / 2, H / 2]); }
+      else if (S.proj === 'gnomonic') { proj.scale(W < 900 ? 220 : 260).translate([W / 2, H / 2]); }
       else proj.fitExtent([[12, 12], [W - 12, H - 12]], { type: 'Sphere' });
     }
 

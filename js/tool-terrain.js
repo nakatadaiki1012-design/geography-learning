@@ -387,7 +387,7 @@ registerTool('hazard', {
       ui.side.innerHTML = `<h2>防災シミュレーション：${hzName}</h2>
         <p class="lead">架空の町。地形分類図とハザードマップを重ねて、どこへ避難すべきか考えよう。</p>
         <div class="lv"></div>
-        <div class="card think"><b>ミッション</b><p style="margin:4px 0">${{ flood: '大雨で川の水位が上がっている。自宅（🏠）から、どの避難所へ逃げるのがよいだろう？', tsunami: '大きな地震がおきて津波警報が出た。自宅から、どこへ逃げるのがよいだろう？', landslide: '大雨が続き、土砂災害警戒情報が出た。自宅から、どの避難所へ逃げるのがよいだろう？' }[S.hz]}</p>
+        <div class="card mission"><b>ミッション</b><p style="margin:4px 0">${{ flood: '大雨で川の水位が上がっている。自宅（🏠）から、どの避難所へ逃げるのがよいだろう？', tsunami: '大きな地震がおきて津波警報が出た。自宅から、どこへ逃げるのがよいだろう？', landslide: '大雨が続き、土砂災害警戒情報が出た。自宅から、どの避難所へ逃げるのがよいだろう？' }[S.hz]}</p>
         <p class="small muted" style="margin:0">地図の避難所（A〜E）をクリックして選ぶと、道すじと評価が出る。</p></div>
         <div class="res"></div>
         <h3>地形と災害の関係</h3>

@@ -35,6 +35,7 @@ registerTool('climate', {
         const sel = c.id === S.city && !hidden;
         const gr = climateGroupOf(c);
         const g = dots.append('g').attr('transform', `translate(${p})`).style('cursor', hidden ? 'default' : 'pointer');
+        g.append('circle').attr('r', 20).attr('fill', 'transparent');
         g.append('circle').attr('r', sel ? 9 : 6).attr('fill', hidden ? 'var(--muted)' : KG_COLOR[gr]).attr('stroke', sel ? 'var(--ink)' : 'var(--panel)').attr('stroke-width', sel ? 3 : 1.5);
         if (!hidden) g.append('text').attr('class', 'lbl').attr('x', 10).attr('y', 4).style('font-size', sel ? '13px' : '10.5px').style('font-weight', sel ? 700 : 400).text(c.name.replace(/（.*）/, ''));
         if (!hidden) g.on('click', () => { S.city = c.id; S.mode = 'view'; modeSeg.setValue('view'); drawDots(); renderSide(); });

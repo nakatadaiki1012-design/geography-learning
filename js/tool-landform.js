@@ -84,7 +84,7 @@ registerTool('landform', {
     const showTip = (ev, t) => { const r = ui.wrap.getBoundingClientRect(); tip.hidden = false; tip.textContent = t; tip.style.left = (ev.clientX - r.left) + 'px'; tip.style.top = (ev.clientY - r.top) + 'px'; };
 
     ui.bar.appendChild(seg([{ v: 'world', label: '世界の大地形' }, { v: 'japan', label: '日本付近のプレート' }], S.area, v => { S.area = v; S.info = null; draw(); renderSide(); }));
-    const lbar = el('<span class="row" style="gap:4px"></span>'); ui.bar.appendChild(lbar);
+    const lbar = el('<span class="row" style="gap:4px;flex-wrap:nowrap"></span>'); ui.bar.appendChild(lbar);
     function layerChips() {
       lbar.innerHTML = '';
       const L = S.area === 'world' ? [['newb', '新期造山帯'], ['oldb', '古期造山帯'], ['shield', '安定陸塊'], ['bounds', 'プレート境界'], ['volc', '火山'], ['quake', '大地震']] : [['volc', '火山'], ['quake', '大地震']];

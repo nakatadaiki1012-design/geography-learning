@@ -29,17 +29,21 @@ registerTool('lessons', {
       root.innerHTML = `<div class="lesson">
         <div class="lesson-head"><div><span class="no">授業モード</span><h2>${course.name}</h2></div>
         <div style="margin-left:auto;text-align:right"><div class="small muted">合格した授業</div><div class="mono" style="font-size:24px;font-weight:600">${done} / ${course.all.length}</div></div></div>
-        <p class="lead" style="font-size:14px">学習指導要領の項目の順に並んでいます。各授業は「問い → 説明 → 資料で考える → 考えよう（記述）→ 確認テスト」の流れ。確認テストで3問以上正解すると合格のはんこ。</p>
+        <p class="lead mlead" style="font-size:14px">学習指導要領の項目の順に並んでいます。各授業は「問い → 説明 → 資料で考える → 考えよう（記述）→ 確認テスト」の流れ。確認テストで3問以上正解すると合格のはんこ。</p>
         ${next ? `<button type="button" class="btn cont">続きから：${next.no} ${next.title}</button>` : ''}
         <div class="lesson-menu"></div></div>`;
       const mb = $('.lesson-menu', root);
       course.parts.forEach(p => {
-        mb.appendChild(el(`<h3>${p.name}</h3>`));
+        const has = next && p.lessons.includes(next);
+        const pd = p.lessons.filter(l => P[l.id]).length;
+        const det = el(`<details class="lpart"${!MOBILE.matches || has ? ' open' : ''}><summary><h3>${p.name}<small>${pd} / ${p.lessons.length} 合格</small></h3></summary><div class="lgrid"></div></details>`);
+        const grid = $('.lgrid', det);
         p.lessons.forEach(l => {
           const b = el(`<button type="button" class="lcard"><span class="no">${l.no}</span><span class="tt">${l.title}</span><span class="q">${l.q}</span><span class="st">${P[l.id] ? '<span class="hanko" style="width:34px;height:34px;font-size:11px;border-width:2px">合格</span>' : V[l.id] ? '✓' : ''}</span></button>`);
           b.addEventListener('click', () => go(l.id));
-          mb.appendChild(b);
+          grid.appendChild(b);
         });
+        mb.appendChild(det);
       });
       const cb = $('.cont', root); if (cb) cb.addEventListener('click', () => go(next.id));
     }
@@ -51,9 +55,10 @@ registerTool('lessons', {
       const V = seen(); V[l.id] = true; store.set('seen', V);
       const idx = course.all.indexOf(l), prev = course.all[idx - 1], next = course.all[idx + 1];
       root.innerHTML = `<div class="lesson">
-        <div class="row" style="justify-content:space-between"><button type="button" class="btn small ghost back">← 授業の一覧</button>
-          <span class="row"><button type="button" class="btn small ghost pv" ${prev ? '' : 'disabled'}>← 前の授業</button><button type="button" class="btn small ghost nx" ${next ? '' : 'disabled'}>次の授業 →</button></span></div>
-        <div class="lesson-head" style="margin-top:10px"><div><span class="no">${course.name} ${l.no}</span><h2>${l.title}</h2></div></div>
+        <div class="row lnav" style="justify-content:space-between;flex-wrap:nowrap"><button type="button" class="btn small ghost back">← <span class="lbl">授業の</span>一覧</button>
+          <span class="no lno">${course.name} ${l.no}</span>
+          <span class="row" style="flex-wrap:nowrap;gap:4px"><button type="button" class="btn small ghost pv" ${prev ? '' : 'disabled'}>← 前<span class="lbl">の授業</span></button><button type="button" class="btn small ghost nx" ${next ? '' : 'disabled'}>次<span class="lbl">の授業</span> →</button></span></div>
+        <div class="lesson-head" style="margin-top:6px"><div><h2>${l.title}</h2></div></div>
         <div class="lesson-q"><b>問い</b>　${l.q}</div>
         <div class="tabs" role="tablist">
           <button type="button" data-t="slides">① 説明</button><button type="button" data-t="tool">② 資料で考える</button><button type="button" data-t="think">③ 考えよう</button><button type="button" data-t="test">④ 確認テスト${passed()[l.id] ? ' 🏅' : ''}</button></div>
@@ -67,11 +72,14 @@ registerTool('lessons', {
       function show(t) {
         cleanup && cleanup(); cleanup = null;
         $$('.tabs button', root).forEach(b => b.setAttribute('aria-selected', String(b.dataset.t === t)));
+        $('.lesson', root).dataset.tab = t;
         body.innerHTML = '';
         if (t === 'slides') slides();
         if (t === 'tool') {
-          body.appendChild(el(`<p class="small muted" style="margin:0 0 8px">${l.tool.label}：地図やグラフを動かして、「問い」の答えの手がかりをさがそう。</p>`));
+          body.appendChild(el(`<p class="small muted toolhint" style="margin:0 0 8px">${l.tool.label}：地図やグラフを動かして、「問い」の答えの手がかりをさがそう。</p>`));
           const box = el('<div class="embed"></div>'); body.appendChild(box);
+          // スマホでは、授業の見出しの下に残った高さいっぱいに道具を表示する
+          if (MOBILE.matches) box.style.setProperty('--embed-h', Math.max(440, window.innerHeight - box.getBoundingClientRect().top - 12) + 'px');
           cleanup = TOOLS[l.tool.id].render(box, Object.assign({}, l.tool.params));
           body.appendChild(nextBtn('③ 考えよう へ', 'think'));
         }

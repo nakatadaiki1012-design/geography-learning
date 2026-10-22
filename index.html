@@ -117,7 +117,8 @@ input[type="range"] { width: 100%; accent-color: var(--accent); }
 .slider-row output { font-family: var(--font-data); text-align: right; font-size: 13px; }
 .card { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; background: var(--bg); margin: 8px 0; }
 .card.think { border-color: var(--shu); border-left-width: 5px; background: color-mix(in srgb, var(--shu) 6%, var(--panel)); }
-.card.think > b:first-child { color: var(--shu); }
+.card.think > b:first-child, .card.mission > b:first-child { color: var(--shu); }
+.card.mission { border-color: var(--shu); border-left-width: 5px; background: color-mix(in srgb, var(--shu) 6%, var(--panel)); }
 .card.ok { border-color: var(--ok); border-left-width: 5px; }
 .card.ng { border-color: var(--shu); border-left-width: 5px; }
 .kv { display: grid; grid-template-columns: auto 1fr; gap: 2px 12px; font-size: 14px; margin: 6px 0; }
@@ -164,9 +165,15 @@ details.more summary { cursor: pointer; color: var(--accent); font-weight: 700; 
 
 /* --- 授業モード --- */
 .lessons { max-width: 1180px; margin: 0 auto; }
-.lesson-menu { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px; }
-.lesson-menu h3 { grid-column: 1 / -1; margin: 18px 0 0; font-size: 18px; }
-.lesson-menu h3 small { font-family: var(--font-body); font-size: 12px; color: var(--muted); font-weight: 500; margin-left: 6px; }
+.lgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px; margin-top: 8px; }
+.lpart { margin-top: 14px; }
+.lpart summary { cursor: pointer; list-style: none; }
+.lpart summary::-webkit-details-marker { display: none; }
+.lpart summary h3::before { content: '▸ '; color: var(--accent); }
+.lpart[open] summary h3::before { content: '▾ '; }
+.lpart h3 { margin: 0; font-size: 18px; }
+.lno { font-family: var(--font-data); color: var(--accent); font-weight: 600; font-size: 13px; white-space: nowrap; }
+.lpart h3 small { font-family: var(--font-body); font-size: 12px; color: var(--muted); font-weight: 500; margin-left: 6px; }
 .lcard { text-align: left; border: 1px solid var(--line); background: var(--panel); border-radius: var(--r); padding: 10px 12px; display: grid; gap: 2px; position: relative; }
 .lcard:hover { border-color: var(--accent); }
 .lcard .no { font-family: var(--font-data); font-size: 12px; color: var(--accent); font-weight: 600; }
@@ -196,15 +203,74 @@ details.more summary { cursor: pointer; color: var(--accent); font-weight: 700; 
 .embed .tool { height: min(78vh, 760px); }
 .views { display: flex; flex-wrap: wrap; gap: 4px; margin: 6px 0; }
 
+/* --- スマホ：1画面におさめる（地図は上、説明は下のタブに分けて、ページ全体はスクロールしない） --- */
+.stabs { display: none; }
 @media (max-width: 900px) {
-  :root { --top-h: 0px; }
-  .tool { grid-template-columns: 1fr; height: auto; min-height: 0; }
-  .stage { height: auto; min-height: 0; }
-  .stage > svg, .stage .svgwrap > svg { height: auto; max-height: 75vh; }
-  .side { overflow: visible; }
-  .embed .tool { height: auto; }
+  body { font-size: 14px; line-height: 1.55; background-size: 32px 32px; }
+  .top { padding: 5px 10px 4px; }
+  .top-row { gap: 6px; flex-wrap: nowrap; }
+  .brand { font-size: 17px; letter-spacing: 0; }
   .brand small { display: none; }
-  .choices.grid2 { grid-template-columns: 1fr; }
+  .grpnav { flex-wrap: nowrap; gap: 3px; min-width: 0; overflow-x: auto; scrollbar-width: none; }
+  .grpnav button { padding: 3px 9px; font-size: 12.5px; white-space: nowrap; }
+  .icon-btn { padding: 3px 7px; font-size: 12px; }
+  .icon-btn .lbl { display: none; }
+  .secnav { margin-top: 3px; scrollbar-width: none; }
+  .secnav button { padding: 3px 10px; font-size: 13px; }
+  main { padding: 6px 6px 8px; }
+  .tool { grid-template-columns: 1fr; grid-template-rows: auto minmax(0, 1fr); gap: 6px; height: calc(100dvh - var(--top-h) - 14px); min-height: 460px; }
+  .stage { height: auto; min-height: 0; border-radius: 10px; }
+  .stage > svg, .stage .svgwrap > svg { height: auto; max-height: 46dvh; }
+  .stage-bar { flex-wrap: nowrap; overflow-x: auto; padding: 5px 6px; gap: 4px; scrollbar-width: none; }
+  .stage-bar .seg { flex-wrap: nowrap; }
+  .seg button, .chip { padding: 3px 9px; font-size: 12px; }
+  .stage-foot { flex-wrap: nowrap; overflow-x: auto; white-space: nowrap; padding: 3px 6px; font-size: 11px; scrollbar-width: none; }
+  .stage-foot .legend { flex-wrap: nowrap; }
+  .legend { font-size: 11px; gap: 2px 8px; }
+  .side { padding: 0 10px 10px; border-radius: 10px; overflow-y: auto; }
+  .side h2 { font-size: 16px; margin: 0; }
+  .side h3 { font-size: 14px; margin: 10px 0 4px; }
+  .lead { font-size: 12px; margin-bottom: 4px; }
+  .card { padding: 7px 9px; margin: 6px 0; }
+  .kv { font-size: 13px; grid-template-columns: auto 1fr auto 1fr; }
+  .tbl { font-size: 12px; }
+  .tbl th, .tbl td { padding: 3px 4px; }
+  textarea { min-height: 72px; }
+  .flow li { font-size: 13px; padding: 4px 6px 4px 30px; }
+  /* 説明パネルのタブ */
+  .stabs { display: flex; gap: 2px; position: sticky; top: 0; z-index: 2; background: var(--panel); margin: 0 -10px 6px; padding: 6px 8px 0; border-bottom: 1px solid var(--line); overflow-x: auto; scrollbar-width: none; }
+  .stabs button { border: 0; background: transparent; padding: 5px 10px 6px; font-size: 13px; font-weight: 700; color: var(--muted); white-space: nowrap; border-bottom: 3px solid transparent; margin-bottom: -1px; }
+  .stabs button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--shu); }
+  .stabs button.th { color: var(--shu); }
+  .spane[hidden] { display: none !important; }
+  .spane > h3:first-child { display: none; }
+  /* 授業 */
+  .lesson { padding: 10px 10px 12px; border-radius: 10px; }
+  .lesson-head h2 { font-size: 19px; }
+  .lesson-q { font-size: 14px; padding: 6px 10px; margin: 6px 0 4px; }
+  .tabs { margin: 4px 0 8px; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+  .tabs button { padding: 6px 8px; font-size: 13px; white-space: nowrap; }
+  .slide { font-size: 15px; line-height: 1.7; min-height: 0; }
+  .slide h3 { font-size: 17px; margin-bottom: 6px; }
+  .slide ul, .slide ol { margin: 4px 0; }
+  .slide .box, .slide .point { padding: 6px 10px; margin: 6px 0; }
+  .slide-nav { margin-top: 8px; position: sticky; bottom: 0; background: var(--panel); padding: 6px 0 2px; }
+  .lnav .btn { padding: 3px 8px; font-size: 12px; }
+  .lnav .btn .lbl { display: none; }
+  .embed .tool { height: var(--embed-h, calc(100dvh - var(--top-h) - 14px)); min-height: 440px; }
+  .lesson[data-tab="tool"] .lesson-q, .lesson[data-tab="test"] .lesson-q, .lesson[data-tab="tool"] .toolhint { display: none; }
+  .lgrid { grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 6px; }
+  .lpart { margin-top: 8px; border-bottom: 1px solid var(--line); padding-bottom: 8px; }
+  .lpart h3 { font-size: 15px; }
+  .mlead { display: none; }
+  .lcard { padding: 7px 9px; }
+  .lcard .q { display: none; }
+  .lcard .tt { font-size: 14px; }
+  .lcard .st { right: 6px; top: 4px; }
+  .choices.grid2 { grid-template-columns: 1fr 1fr; }
+  .choices button { padding: 6px 10px; font-size: 14px; }
+  .qtext { font-size: 15px !important; }
+  .hanko { width: 46px; height: 46px; font-size: 15px; }
 }
 @media print {
   .top { position: static; }
@@ -217,7 +283,7 @@ details.more summary { cursor: pointer; color: var(--accent); font-weight: 700; 
     <h1 class="brand">地理<b>ラボ</b><small>地図で見て、動かして、考える ― 地理総合・地理探究</small></h1>
     <nav class="grpnav" id="grpnav" aria-label="モード"></nav>
     <div class="top-tools">
-      <button type="button" class="icon-btn" id="themeBtn" aria-label="明るさの切りかえ">◐ 明るさ</button>
+      <button type="button" class="icon-btn" id="themeBtn" aria-label="明るさの切りかえ">◐</button>
     </div>
   </div>
   <nav class="secnav" id="secnav" aria-label="分野"></nav>
