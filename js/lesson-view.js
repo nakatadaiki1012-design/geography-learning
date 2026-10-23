@@ -68,38 +68,44 @@ registerTool('lessons', {
       if (next) $('.nx', root).addEventListener('click', () => go(next.id));
       $$('.tabs button', root).forEach(b => b.addEventListener('click', () => show(b.dataset.t)));
       const body = $('.tabbody', root);
+      const foot = makeFoot(); $('.lesson', root).appendChild(foot);
+      const TABS = ['slides', 'tool', 'think', 'test'], TNAME = { slides: '① 説明', tool: '② 資料で考える', think: '③ 考えよう', test: '④ 確認テスト' };
       let si = 0;
       function show(t) {
         cleanup && cleanup(); cleanup = null;
         $$('.tabs button', root).forEach(b => b.setAttribute('aria-selected', String(b.dataset.t === t)));
         $('.lesson', root).dataset.tab = t;
         body.innerHTML = '';
+        body.scrollTop = 0;
+        const i = TABS.indexOf(t);
+        // 説明とテスト以外は「前のタブ／次のタブ」
+        if (t !== 'slides' && t !== 'test') foot.set({ left: { label: `← ${TNAME[TABS[i - 1]]}`, fn: () => show(TABS[i - 1]) }, center: dotsHtml(4, i), right: { label: `${TNAME[TABS[i + 1]]} →`, fn: () => show(TABS[i + 1]) } });
         if (t === 'slides') slides();
         if (t === 'tool') {
           body.appendChild(el(`<p class="small muted toolhint" style="margin:0 0 8px">${l.tool.label}：地図やグラフを動かして、「問い」の答えの手がかりをさがそう。</p>`));
           const box = el('<div class="embed"></div>'); body.appendChild(box);
           // スマホでは、授業の見出しの下に残った高さいっぱいに道具を表示する
-          if (MOBILE.matches) box.style.setProperty('--embed-h', Math.max(440, window.innerHeight - box.getBoundingClientRect().top - 12) + 'px');
+          if (MOBILE.matches) box.style.setProperty('--embed-h', Math.max(400, window.innerHeight - box.getBoundingClientRect().top - 60) + 'px');
           cleanup = TOOLS[l.tool.id].render(box, Object.assign({}, l.tool.params));
-          body.appendChild(nextBtn('③ 考えよう へ', 'think'));
         }
         if (t === 'think') {
           body.appendChild(el(`<div class="card"><b>使う「地理的な見方・考え方」</b><div class="views">${(l.think.views || []).map(k => `<span class="tag v">${VIEWS[k]}</span><span class="small muted" style="margin-right:10px">${VIEW_DESC[k]}</span>`).join('')}</div></div>`));
           body.appendChild(thinkCard(Object.assign({ id: 'lesson-' + l.id }, l.think)));
-          body.appendChild(nextBtn('④ 確認テスト へ', 'test'));
         }
         if (t === 'test') test();
       }
-      function nextBtn(label, t) { const b = el(`<button type="button" class="btn" style="margin-top:12px">${label}</button>`); b.addEventListener('click', () => show(t)); return b; }
+      function dotsHtml(n, on) { return `<span class="dots">${Array.from({ length: n }, (x, i) => `<i class="${i === on ? 'on' : ''}"></i>`).join('')}</span>`; }
       function slides() {
         const s = l.slides[si];
         const sf = fig(((FG[l.id] || {}).s || [])[si]);
-        body.innerHTML = `<div class="slide${sf ? ' has-fig' : ''}"><h3>${s.h}</h3><div class="stext">${s.b}</div><div class="sfig"></div></div>
-          <div class="slide-nav"><button type="button" class="btn ghost sp" ${si ? '' : 'disabled'}>← 前へ</button><div class="dots">${l.slides.map((x, i) => `<i class="${i === si ? 'on' : ''}"></i>`).join('')}</div>
-          <button type="button" class="btn sn">${si < l.slides.length - 1 ? '次へ →' : '② 資料で考える へ'}</button></div>`;
+        body.innerHTML = `<div class="slide${sf ? ' has-fig' : ''}"><h3>${s.h}</h3><div class="stext">${s.b}</div><div class="sfig"></div></div>`;
         if (sf) $('.sfig', body).appendChild(sf);
-        $('.sp', body).addEventListener('click', () => { if (si > 0) { si--; slides(); } });
-        $('.sn', body).addEventListener('click', () => { if (si < l.slides.length - 1) { si++; slides(); } else show('tool'); });
+        const last = si >= l.slides.length - 1;
+        foot.set({
+          left: { label: '← 前へ', disabled: si === 0, fn: () => { si--; slides(); } },
+          center: `${dotsHtml(l.slides.length, si)}<span class="small muted">${si + 1} / ${l.slides.length}</span>`,
+          right: { label: last ? `${TNAME.tool} →` : '次へ →', fn: () => { if (last) show('tool'); else { si++; slides(); } } }
+        });
       }
       function test() {
         let k = 0, score = 0;
@@ -111,33 +117,29 @@ registerTool('lessons', {
             if (ok) { const P = passed(); P[l.id] = true; store.set('passed', P); $('.tabs button[data-t="test"]', root).textContent = '④ 確認テスト 🏅'; }
             body.appendChild(el(`<div class="card ${ok ? 'ok' : 'ng'}" style="text-align:center;padding:16px"><div style="font-size:22px;font-family:var(--font-display);font-weight:800">${score} / ${qs.length} 問 正解</div>
               ${ok ? '<div style="margin:10px 0"><span class="hanko">合格</span></div>' : '<p>3問以上で合格。説明をもう一度読んでから挑戦しよう。</p>'}</div>`));
-            const row = el('<div class="row"></div>');
-            const again = el('<button type="button" class="btn ghost">もう一度</button>'); again.addEventListener('click', test); row.appendChild(again);
-            if (next) { const nb = el(`<button type="button" class="btn">次の授業：${next.title} →</button>`); nb.addEventListener('click', () => go(next.id)); row.appendChild(nb); }
-            body.appendChild(row);
+            foot.set({ left: { label: '↺ もう一度', fn: test }, center: `<span class="small muted">結果</span>`, right: next ? { label: '次の授業 →', fn: () => go(next.id) } : { label: '授業の一覧 →', fn: () => { location.hash = `#lessons/${course.id}`; } } });
             return;
           }
           const [q, choices, a, exp] = qs[k];
-          body.appendChild(el(`<p class="small muted">第 ${k + 1} 問 / ${qs.length}</p>`));
+          foot.set({ left: { label: `← ${TNAME.think}`, fn: () => show('think') }, center: `<span class="small muted">第 ${k + 1} 問 / ${qs.length}　正解 ${score}</span>`, right: { label: k + 1 < qs.length ? '次の問題 →' : '結果を見る →', disabled: true, fn: () => { k++; step(); } } });
           choiceQuestion(body, { q, choices, a, exp, expFig: ((FG[l.id] || {}).t || [])[k] }, ok => {
             if (ok) score++;
-            const nb = el(`<button type="button" class="btn" style="margin-top:8px">${k + 1 < qs.length ? '次の問題 →' : '結果を見る'}</button>`);
-            nb.addEventListener('click', () => { k++; step(); });
-            ($('.qbox:last-of-type .exp', body) || body).appendChild(nb);
+            $('.fc', foot).innerHTML = `<span class="small muted">第 ${k + 1} 問 / ${qs.length}　正解 ${score}</span>`;
+            foot.enableRight();
           });
         };
         step();
       }
       show(tab);
-      // ← → キーでスライドを進める
+      // ← → キーで、下のバーの「前へ／次へ」を押す
       const key = e => {
-        if ($('.tabs button[aria-selected="true"]', root)?.dataset.t !== 'slides' || /INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)) return;
-        if (e.key === 'ArrowRight') $('.sn', body)?.click();
-        if (e.key === 'ArrowLeft') $('.sp', body)?.click();
+        if (/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)) return;
+        const t = $('.lesson', root)?.dataset.tab; if (t !== 'slides' && t !== 'test') return;
+        const b = e.key === 'ArrowRight' ? $('.fr .btn', foot) : e.key === 'ArrowLeft' && t === 'slides' ? $('.fl .btn', foot) : null;
+        if (b && !b.disabled) b.click();
       };
       document.addEventListener('keydown', key);
-      const prevCleanup = () => document.removeEventListener('keydown', key);
-      root._cleanup = prevCleanup;
+      root._cleanup = () => document.removeEventListener('keydown', key);
     }
 
     if (params.lesson) lesson(params.lesson, params.tab); else menu();

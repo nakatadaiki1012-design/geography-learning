@@ -114,11 +114,12 @@ const READ_FIXED = [
 registerTool('reading', {
   name: '資料読み取り',
   render(container) {
-    const root = el(`<div class="lessons"><div class="lesson"><div class="lesson-head"><div><span class="no">挑戦</span><h2>資料読み取りチャレンジ</h2></div></div>
+    const root = el(`<div class="lessons"><div class="lesson fill"><div class="lesson-head"><div><span class="no">挑戦</span><h2>資料読み取りチャレンジ</h2></div></div>
       <p class="lead" style="font-size:14px">雨温図・統計表・人口ピラミッドなどの資料から<b>根拠</b>を見つけて答える、思考・判断の練習（1回10問）。</p>
       <div class="q"></div></div></div>`);
     container.appendChild(root);
     const box = $('.q', root);
+    const foot = makeFoot(); $('.lesson', root).appendChild(foot);
     let list, i, score;
     function start() {
       const kinds = shuffle(['climate', 'climate', 'stats', 'stats', 'mapType', 'time', 'pyramid', 'fixed', 'fixed', 'fixed']);
@@ -131,15 +132,14 @@ registerTool('reading', {
       if (i >= list.length) {
         const best = Math.max(store.get('bestReading', 0), score); store.set('bestReading', best);
         box.innerHTML = `<div class="card ok" style="text-align:center"><div style="font-size:22px;font-family:var(--font-display);font-weight:800">${score} / ${list.length} 問 正解</div><p class="small muted">自己ベスト ${best} 問</p>${score >= 8 ? '<span class="hanko">合格</span>' : ''}</div>`;
-        const b = el('<button type="button" class="btn">もう一度（問題が変わります）</button>'); b.addEventListener('click', start); box.appendChild(b);
+        foot.set({ center: '<span class="small muted">結果</span>', right: { label: '↺ もう一度', fn: start } });
         return;
       }
-      box.appendChild(el(`<p class="small muted">第 ${i + 1} 問 / ${list.length}　正解 ${score}</p>`));
+      foot.set({ center: `<span class="small muted">第 ${i + 1} 問 / ${list.length}　正解 ${score}</span>`, right: { label: i + 1 < list.length ? '次の問題 →' : '結果を見る →', disabled: true, fn: () => { i++; show(); } } });
       choiceQuestion(box, list[i], ok => {
         if (ok) score++;
-        const nb = el(`<button type="button" class="btn" style="margin-top:8px">${i + 1 < list.length ? '次の問題 →' : '結果を見る'}</button>`);
-        nb.addEventListener('click', () => { i++; show(); });
-        ($('.qbox .exp', box) || box).appendChild(nb);
+        $('.fc', foot).innerHTML = `<span class="small muted">第 ${i + 1} 問 / ${list.length}　正解 ${score}</span>`;
+        foot.enableRight();
       });
     }
     start();

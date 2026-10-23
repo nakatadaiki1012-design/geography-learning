@@ -221,6 +221,25 @@ function thinkCard({ id, q, hint, answer, views, points }) {
   return card;
 }
 
+// 下のバー：左＝もどる、まん中＝進みぐあい、右＝次へ。どの画面でも同じ場所に出す
+function makeFoot() {
+  const f = el('<div class="lfoot"><span class="fl"></span><span class="fc"></span><span class="fr"></span></div>');
+  const btn = (o, cls) => {
+    if (!o) return '';
+    const b = el(`<button type="button" class="btn ${cls}">${o.label}</button>`);
+    b.disabled = !!o.disabled; if (o.fn) b.addEventListener('click', o.fn);
+    return b;
+  };
+  f.set = ({ left, center, right }) => {
+    const L = $('.fl', f), C = $('.fc', f), R = $('.fr', f);
+    L.innerHTML = ''; C.innerHTML = center || ''; R.innerHTML = '';
+    if (left) L.appendChild(btn(left, 'ghost'));
+    if (right) R.appendChild(btn(right, ''));
+  };
+  f.enableRight = (label) => { const b = $('.fr .btn', f); if (b) { b.disabled = false; if (label) b.innerHTML = label; b.classList.add('pulse'); } };
+  return f;
+}
+
 // 選択問題（1問）。onDone(正解か)
 function choiceQuestion(container, { q, choices, a, exp, figure, plain, expFig }, onDone) {
   const box = el(`<div class="qbox"><div class="qtext" style="font-size:16px;margin:4px 0 6px">${q}</div><div class="qfig"></div><div class="choices"></div><div class="exp"></div></div>`);
