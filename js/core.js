@@ -100,7 +100,6 @@ const MOBILE = window.matchMedia('(max-width: 900px)');
 function mobileTabs(side) {
   const mo = new MutationObserver(() => tabify());
   function tabify() {
-    if (!MOBILE.matches) return;
     mo.disconnect();
     const bar = $(':scope > .stabs', side);
     if (bar) {
@@ -224,8 +223,8 @@ function thinkCard({ id, q, hint, answer, views, points }) {
 
 // 選択問題（1問）。onDone(正解か)
 function choiceQuestion(container, { q, choices, a, exp, figure, plain, expFig }, onDone) {
-  const box = el(`<div><div class="qtext" style="font-size:16px;margin:4px 0 6px">${q}</div><div class="fig"></div><div class="choices"></div><div class="exp"></div></div>`);
-  if (figure) $('.fig', box).appendChild(figure);
+  const box = el(`<div class="qbox"><div class="qtext" style="font-size:16px;margin:4px 0 6px">${q}</div><div class="qfig"></div><div class="choices"></div><div class="exp"></div></div>`);
+  if (figure) $('.qfig', box).appendChild(figure);
   const cb = $('.choices', box);
   if (choices.every(c => String(c).length <= 14) && choices.length === 4) cb.classList.add('grid2');
   choices.forEach((c, i) => {

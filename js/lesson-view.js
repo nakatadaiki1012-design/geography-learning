@@ -36,7 +36,7 @@ registerTool('lessons', {
       course.parts.forEach(p => {
         const has = next && p.lessons.includes(next);
         const pd = p.lessons.filter(l => P[l.id]).length;
-        const det = el(`<details class="lpart"${!MOBILE.matches || has ? ' open' : ''}><summary><h3>${p.name}<small>${pd} / ${p.lessons.length} 合格</small></h3></summary><div class="lgrid"></div></details>`);
+        const det = el(`<details class="lpart"${has || (!next && p === course.parts[0]) ? ' open' : ''}><summary><h3>${p.name}<small>${pd} / ${p.lessons.length} 合格</small></h3></summary><div class="lgrid"></div></details>`);
         const grid = $('.lgrid', det);
         p.lessons.forEach(l => {
           const b = el(`<button type="button" class="lcard"><span class="no">${l.no}</span><span class="tt">${l.title}</span><span class="q">${l.q}</span><span class="st">${P[l.id] ? '<span class="hanko" style="width:34px;height:34px;font-size:11px;border-width:2px">合格</span>' : V[l.id] ? '✓' : ''}</span></button>`);
@@ -56,7 +56,7 @@ registerTool('lessons', {
       const idx = course.all.indexOf(l), prev = course.all[idx - 1], next = course.all[idx + 1];
       root.innerHTML = `<div class="lesson">
         <div class="row lnav" style="justify-content:space-between;flex-wrap:nowrap"><button type="button" class="btn small ghost back">← <span class="lbl">授業の</span>一覧</button>
-          <span class="no lno">${course.name} ${l.no}</span>
+          <span class="no lno">${course.name} ${l.no}<b class="ltitle">${l.title}</b></span>
           <span class="row" style="flex-wrap:nowrap;gap:4px"><button type="button" class="btn small ghost pv" ${prev ? '' : 'disabled'}>← 前<span class="lbl">の授業</span></button><button type="button" class="btn small ghost nx" ${next ? '' : 'disabled'}>次<span class="lbl">の授業</span> →</button></span></div>
         <div class="lesson-head" style="margin-top:6px"><div><h2>${l.title}</h2></div></div>
         <div class="lesson-q"><b>問い</b>　${l.q}</div>
@@ -123,7 +123,7 @@ registerTool('lessons', {
             if (ok) score++;
             const nb = el(`<button type="button" class="btn" style="margin-top:8px">${k + 1 < qs.length ? '次の問題 →' : '結果を見る'}</button>`);
             nb.addEventListener('click', () => { k++; step(); });
-            body.appendChild(nb);
+            ($('.qbox:last-of-type .exp', body) || body).appendChild(nb);
           });
         };
         step();

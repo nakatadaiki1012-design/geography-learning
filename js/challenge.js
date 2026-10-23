@@ -139,7 +139,7 @@ registerTool('reading', {
         if (ok) score++;
         const nb = el(`<button type="button" class="btn" style="margin-top:8px">${i + 1 < list.length ? '次の問題 →' : '結果を見る'}</button>`);
         nb.addEventListener('click', () => { i++; show(); });
-        box.appendChild(nb);
+        ($('.qbox .exp', box) || box).appendChild(nb);
       });
     }
     start();
