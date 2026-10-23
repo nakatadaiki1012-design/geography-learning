@@ -415,7 +415,8 @@ registerTool('hazard', {
       const J = judge(sh);
       box.innerHTML = `<div class="card ${J.ok === true ? 'ok' : 'ng'}"><b>${sh.id}：${sh.name}</b> → ${J.ok === true ? '<span style="color:var(--ok)">◎ 安全に避難できる</span>' : J.ok === 'mid' ? '<span class="warn">△ 危険がある</span>' : '<span class="warn">× 避難所として危険</span>'}
         <ul class="small" style="margin:4px 0 0;padding-left:1.2em">${J.why.map(x => `<li>${x}</li>`).join('')}</ul></div>
-        <p class="small muted">道すじ：青＝安全、赤＝危険な所を通る。${S.hz === 'flood' ? '水位を上げ下げして、道すじがどう変わるか試そう。' : ''}</p>`;
+        <p class="small muted">道すじ：青＝安全、赤＝危険な所を通る。${S.hz === 'flood' ? '水位を上げ下げして、道すじがどう変わるか試そう。' : ''}</p><button type="button" class="btn small ghost re">別の避難所をえらぶ</button>`;
+      $('.re', box).addEventListener('click', () => { S.choice = null; draw(); renderSide(); });
     }
 
     compute(); draw(); renderSide();

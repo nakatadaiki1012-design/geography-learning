@@ -459,7 +459,11 @@ button.tag.v { border-color: transparent; }
   .stage-foot .legend { flex-wrap: wrap; }
   .lnav .btn { min-height: 34px; }
   button.tag, .kterms button.tag { padding: 6px 10px; margin: 0 4px 4px 0; }
-  .tool.mq { grid-template-rows: minmax(52dvh, 1fr) auto; }
+  .tool.mq { grid-template-rows: auto minmax(0, 1fr); }
+  .qfig > div { grid-template-columns: 1fr; gap: 4px; justify-items: center; }
+  .qfig > div > svg:first-child { max-height: 27dvh; width: auto !important; max-width: 100%; }
+  .qfig > div > svg + svg { max-height: 16dvh; width: auto !important; }
+  .side.more > .spane:not([hidden]), .side.more > .think { padding-bottom: 22px; }
   .tool.mq .stage-bar { flex-wrap: wrap; }
 }
 @media (min-width: 1600px) {

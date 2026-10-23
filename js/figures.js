@@ -79,7 +79,7 @@ const F = {
         COUNTRIES.map(c => ({ c, v: indicatorValue(c, I), p: proj(mainCentroid(WORLD.countries.find(f => f.id === c.id))) })).sort((a, b) => b.v - a.v)
           .forEach(d => base.g.append('circle').attr('cx', d.p[0]).attr('cy', d.p[1]).attr('r', r(d.v)).attr('fill', 'rgba(200,68,42,.45)').attr('stroke', 'var(--shu)'));
       }
-      const legend = circle ? null : CHORO.map((c, i) => [c, i === 0 ? `〜${br[0]}` : i === 5 ? `${br[4]}〜` : `${br[i - 1]}〜${br[i]}`]);
+      const legend = circle ? null : CHORO.map((c, i) => [c, (i === 0 ? `〜${br[0]}` : i === 5 ? `${br[4]}〜` : `${br[i - 1]}〜${br[i]}`) + (i === 5 && I.unit ? I.unit : '')]);
       return figWrap(svg.node(), o.cap || `${I.name}（${I.unit || '—'}）${circle ? '・円の大きさで表した図形表現図' : '・階級区分図'}`, legend);
     };
   },

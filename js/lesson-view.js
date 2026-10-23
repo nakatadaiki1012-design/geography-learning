@@ -119,7 +119,9 @@ registerTool('lessons', {
           ta.addEventListener('input', upd); upd();
           $('.chips', kc).addEventListener('click', e => {
             const b = e.target.closest('button[data-i]'); if (!b) return;
-            const w = termName(terms[+b.dataset.i]), s = ta.selectionStart ?? ta.value.length;
+            let w = termName(terms[+b.dataset.i]); const s = ta.selectionStart ?? ta.value.length;
+            // 文の途中に続けて入れるときは「、」で区切る
+            if (s > 0 && !/[、。・（「\s]$/.test(ta.value.slice(0, s))) w = '、' + w;
             ta.value = ta.value.slice(0, s) + w + ta.value.slice(ta.selectionEnd ?? s);
             ta.focus(); ta.setSelectionRange(s + w.length, s + w.length);
             ta.dispatchEvent(new Event('input', { bubbles: true }));
