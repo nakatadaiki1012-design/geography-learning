@@ -447,7 +447,7 @@ function legibleSvg(svgNode) {
 }
 (function watchLegible() {
   let raf = 0;
-  const run = () => { raf = 0; document.querySelectorAll('#main svg').forEach(s => { if (s.closest('.ftip')) return; try { legibleSvg(s); } catch (e) { /* 図によってはスキップ */ } }); };
+  const run = () => { raf = 0; document.querySelectorAll('#main svg').forEach(s => { if (s.closest('.ftip') || s.dataset.ownLabels) return; try { legibleSvg(s); } catch (e) { /* 図によってはスキップ */ } }); };
   const later = () => { if (!raf) raf = requestAnimationFrame(() => requestAnimationFrame(run)); };
   const start = () => { const m = document.getElementById('main'); if (!m) return setTimeout(start, 50); new MutationObserver(later).observe(m, { childList: true, subtree: true }); window.addEventListener('resize', later); later(); };
   start();

@@ -448,6 +448,17 @@ button.tag.v { border-color: transparent; }
 .tnote { margin-top: 10px; }
 .certtbl th { white-space: nowrap; }
 .printonly { display: none; }
+/* 自然の白地図 */
+.pm .chips { display: flex; flex-wrap: wrap; gap: 4px; }
+.pm .chip.on { background: var(--ink); color: var(--panel); border-color: var(--ink); }
+.pm g.pf .vis, .pm g.pf .vis2, .pm g.pf .hit { vector-effect: non-scaling-stroke; }
+.pm g.pf.hl .vis { stroke: #e0533d; }
+.pm g.pf.hl path.vis[fill]:not([fill="none"]) { fill: #e0533d; fill-opacity: .6; }
+.pm .plbl { font-size: 13px; font-weight: 700; }
+.pm .plbl.on, .pm .plbl.ng { fill: #c8442a; font-size: 15px; }
+.pm .plbl.ok { fill: #2f7d32; font-size: 15px; }
+.pm .pchoices { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin: 8px 0; }
+.pm .pchoices button { text-align: left; padding: 8px 10px; border: 1px solid var(--line); border-radius: 10px; background: var(--panel); }
 .fhint.incap { position: static; display: inline-block; margin: 0 6px 0 0; padding: 0 7px; font-size: 12px; vertical-align: 1px; }
 .fhint.incap.used { opacity: .35; }
 @media (max-width: 900px) {
@@ -465,6 +476,8 @@ button.tag.v { border-color: transparent; }
   .qfig > div > svg + svg { max-height: 16dvh; width: auto !important; }
   .side.more > .spane:not([hidden]), .side.more > .think { padding-bottom: 22px; }
   .tool.mq .stage-bar { flex-wrap: wrap; }
+  .tool.pm { grid-template-rows: 57dvh minmax(0, 1fr); }
+  .tool.pm .svgwrap > svg { height: 100%; max-height: none; }
 }
 @media (min-width: 1600px) {
   .lessons { max-width: 1500px; }
@@ -504,6 +517,8 @@ button.tag.v { border-color: transparent; }
 <script src="js/tool-time.js"></script>
 <script src="js/tool-terrain.js"></script>
 <script src="js/tool-pop.js"></script>
+<script src="js/physical-data.js"></script>
+<script src="js/tool-physmap.js"></script>
 <script src="js/figures.js"></script>
 <script src="js/fig-interact.js"></script>
 <script src="js/relief.js"></script>
