@@ -275,7 +275,7 @@ const F = {
       const cap = {
         river: '川の上流から河口までの地形（模式図）', floodplain: '氾濫原の断面（模式図）。自然堤防の上に集落、後背湿地に水田', fan: '扇状地（上から見た模式図）', coast: '沈水海岸（上から見た模式図）',
         urban: '都市の内部と人口の動き（模式図）', thunen: 'チューネンの孤立国（模式図）', weber: '工業の立地（模式図）', transition: '人口転換（出生率・死亡率の変化の模式図）', pushpull: '人口移動のしくみ',
-        terrace: '河岸段丘の断面（模式図）', symbols: '主な地図記号', scale: '縮尺の計算（2万5千分の1）', karst: 'カルスト地形（模式図）', glacier: '氷河地形（模式図）', survey: '地域調査の流れ', help: '防災の3つの「助」', hazardmap: 'ハザードマップの浸水の深さの目安'
+        terrace: '河岸段丘の断面（模式図）', symbols: '主な地図記号', scale: '縮尺の計算（2万5千分の1）', karst: 'カルスト地形（模式図）', glacier: '氷河地形（模式図）', survey: '地域調査の流れ', help: '防災の3つの「助」', territory: '国家の領域と排他的経済水域（模式図・長さは実際の比率ではない）', altitude: 'アンデスの高度による土地利用（模式図）', hazardmap: 'ハザードマップの浸水の深さの目安'
       }[kind];
       if (kind === 'river') {
         P(`M0,40 L90,60 L150,140 L250,160 L360,175 L420,180 L480,182 L480,${H} L0,${H}Z`, land);
@@ -317,6 +317,28 @@ const F = {
         svg.append('line').attr('x1', 190).attr('y1', 110).attr('x2', 262).attr('y2', 110).attr('stroke', 'var(--shu)').attr('stroke-width', 3).attr('marker-end', mk);
         ftext(svg, 300, 70, 'ドーナツ化現象', { s: 13, b: true, c: 'var(--shu)' }); ftext(svg, 300, 90, '都心の人口が減り、', { s: 11 }); ftext(svg, 300, 106, '郊外の人口が増える', { s: 11 });
         ftext(svg, 300, 140, '都心回帰', { s: 13, b: true, c: 'var(--accent)' }); ftext(svg, 300, 160, '再開発で高層マンション', { s: 11 }); ftext(svg, 300, 176, 'ができ、都心に人がもどる', { s: 11 });
+      } else if (kind === 'territory') {
+        // 領空・領土・領海・接続水域・排他的経済水域・公海
+        P('M0,120 L70,120 L90,140 L480,140 L480,220 L0,220Z', 'var(--sea)');
+        P('M0,95 Q30,80 60,100 L90,140 L0,140Z', land);
+        svg.append('rect').attr('x', 0).attr('y', 40).attr('width', 150).attr('height', 52).attr('fill', 'color-mix(in srgb, var(--accent) 14%, transparent)').attr('stroke', 'var(--accent)').attr('stroke-dasharray', '4 3');
+        lab(75, 62, '領空'); lab(40, 128, '領土', { s: 12 });
+        const seg = (x1, x2, y, c, t, sub) => { svg.append('line').attr('x1', x1).attr('x2', x2).attr('y1', y).attr('y2', y).attr('stroke', c).attr('stroke-width', 8); lab((x1 + x2) / 2, y - 9, t, { s: 11.5, c }); if (sub) lab((x1 + x2) / 2, y + 18, sub, { s: 10, b: false, c: 'var(--muted)' }); };
+        seg(90, 150, 160, '#c8442a', '領海'); lab(120, 180, '12海里', { s: 10, b: false, c: 'var(--muted)' });
+        seg(150, 400, 160, '#2f6fb0', '排他的経済水域（EEZ）'); lab(300, 180, '200海里（約370km）まで：資源を利用できる', { s: 10, b: false, c: 'var(--muted)' });
+        svg.append('line').attr('x1', 150).attr('x2', 200).attr('y1', 200).attr('y2', 200).attr('stroke', '#e3a63a').attr('stroke-width', 6); lab(175, 216, '接続水域（24海里まで）', { s: 10, c: '#b07a10' });
+        lab(445, 160, '公海', { s: 12, c: 'var(--muted)' }); lab(445, 178, 'どの国も自由', { s: 10, b: false, c: 'var(--muted)' });
+        svg.append('line').attr('x1', 90).attr('x2', 90).attr('y1', 140).attr('y2', 205).attr('stroke', 'var(--muted)').attr('stroke-dasharray', '2 2'); lab(62, 210, '海岸線', { s: 10, b: false, c: 'var(--muted)' });
+        lab(320, 28, '国家の主権がおよぶ「領域」＝領土・領海・領空', { s: 11, b: false, c: 'var(--muted)' });
+      } else if (kind === 'altitude') {
+        const bands = [[200, '#9fcf7a', '〜1000m バナナ・さとうきび'], [150, '#d8d27a', '〜2500m とうもろこし'], [100, '#c9b48a', '〜4000m じゃがいも'], [55, '#b9a99a', '4000m〜 リャマ・アルパカ']];
+        svg.append('clipPath').attr('id', 'altc').append('path').attr('d', 'M10,215 L150,25 L290,215Z');
+        const gg = svg.append('g').attr('clip-path', 'url(#altc)');
+        bands.forEach(([y, c], i) => gg.append('rect').attr('x', 0).attr('y', [160, 110, 65, 0][i]).attr('width', 480).attr('height', [60, 50, 45, 65][i]).attr('fill', c));
+        P('M10,215 L150,25 L290,215', 'none', '#7a6a4a').attr('fill', 'none');
+        P('M128,55 L150,25 L172,55 L160,50 L150,60 L140,50Z', '#fff');
+        bands.forEach(([, c, t], i) => { const y = [190, 135, 88, 45][i]; svg.append('line').attr('x1', 150 + (y - 25) * 140 / 190 - 6).attr('x2', 268).attr('y1', y).attr('y2', y).attr('stroke', '#7a6a4a').attr('stroke-dasharray', '2 3'); ftext(svg, 272, y + 4, t, { s: 11, b: true }); });
+        ftext(svg, 8, 22, '標高100mごとに気温が約0.6℃下がる', { s: 10.5, c: 'var(--muted)' });
       } else if (kind === 'thunen') {
         const rings = [[200, '#f3ead7', '牧畜'], [160, '#e9dcb0', '穀物（三圃式など）'], [120, '#cfe0b0', '林業'], [80, '#b8d8a0', '酪農・園芸']];
         rings.forEach(([r, c]) => svg.append('circle').attr('cx', 150).attr('cy', 110).attr('r', r / 2).attr('fill', c).attr('stroke', '#999'));
