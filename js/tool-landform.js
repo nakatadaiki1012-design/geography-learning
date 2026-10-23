@@ -223,7 +223,7 @@ registerTool('landform', {
     function renderSide() {
       const isW = S.area === 'world';
       ui.side.innerHTML = `<h2>${isW ? '世界の大地形' : '日本付近のプレート'}</h2>
-        <p class="lead">${isW ? '地図の線・印をクリックすると説明が出ます。地球の表面は十数枚のプレートにおおわれ、少しずつ動いている。' : '日本列島は4枚のプレートが集まる所にあり、地震や火山が非常に多い。'}</p>
+        <p class="lead">${isW ? '地図の線・印を' + TAP + 'すると説明が出ます。地球の表面は十数枚のプレートにおおわれ、少しずつ動いている。' : '日本列島は4枚のプレートが集まる所にあり、地震や火山が非常に多い。'}</p>
         <div class="info"></div>
         <h3>プレート境界のしくみ（動く模式図）</h3><div class="aseg"></div><div class="anim"></div>
         ${isW ? `<h3>大地形と資源</h3><table class="tbl"><tr><th>大地形</th><th>できた時代</th><th>地形</th><th>資源</th></tr>

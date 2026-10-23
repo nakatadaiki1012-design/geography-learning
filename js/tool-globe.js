@@ -139,7 +139,7 @@ registerTool('globe', {
         <h3>2地点を結ぶ</h3>
         <div class="row"><span class="small muted">出発</span><span class="from"></span><span class="small muted">到着</span><span class="to"></span></div>
         <dl class="kv"><dt>最短距離</dt><dd>約 ${Math.round(d / 100) * 100} km</dd><dt>出発の方位</dt><dd class="t">${bearingName(brg)}（${Math.round(brg)}°）</dd></dl>
-        <p class="small muted">地図上の都市をクリックすると到着地を変えられます。</p>
+        <p class="small muted">地図上の都市を${TAP}すると到着地を変えられます。</p>
         <div class="think"></div>
         <details class="more"><summary>図法のまとめ（くらべる）</summary>
           <table class="tbl"><tr><th>図法</th><th>正しいもの</th><th>おもな使い道</th></tr>

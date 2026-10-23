@@ -97,8 +97,24 @@ function toolShell(container, { bar = true, foot = false } = {}) {
 
 // スマホでは、説明パネルを見出しごとのタブに分けて、スクロールしなくても見られるようにする
 const MOBILE = window.matchMedia('(max-width: 900px)');
+// さわる操作の言い方（指で操作する端末では「タップ」）
+const TAP = window.matchMedia('(pointer: coarse)').matches ? 'タップ' : 'クリック';
+// node が入っている説明パネルのタブを開く
+function revealPane(node) {
+  const pane = node && node.closest('.spane'); if (!pane || !pane.hidden) return;
+  const side = pane.parentElement, i = Array.from(side.querySelectorAll(':scope > .spane')).indexOf(pane);
+  const b = side.querySelectorAll(':scope > .stabs button')[i]; if (b) b.click();
+}
+// パネルの中に続きがあるときは、下に「▼ 続き」を出す
+function markMore(side) {
+  const f = () => side.classList.toggle('more', side.scrollHeight - side.clientHeight - side.scrollTop > 8);
+  side.addEventListener('scroll', f, { passive: true });
+  new ResizeObserver(f).observe(side);
+  return f;
+}
 function mobileTabs(side) {
-  const mo = new MutationObserver(() => tabify());
+  const more = markMore(side);
+  const mo = new MutationObserver(() => { tabify(); requestAnimationFrame(more); });
   function tabify() {
     mo.disconnect();
     const bar = $(':scope > .stabs', side);
@@ -128,7 +144,7 @@ function mobileTabs(side) {
             side._tab = g.name;
             $$(':scope > .spane', side).forEach(p => { p.hidden = p !== pane; });
             $$('button', tabs).forEach(x => x.setAttribute('aria-selected', String(x === b)));
-            side.scrollTop = 0;
+            side.scrollTop = 0; requestAnimationFrame(more);
           });
           tabs.appendChild(b); side.appendChild(pane);
         });
@@ -195,24 +211,32 @@ const VIEWS = {
 function viewTags(keys) { return (keys || []).map(k => `<span class="tag v">${VIEWS[k]}</span>`).join(''); }
 
 // 考えようカード：自分の考えを書く → 解答例と、自分でふりかえるチェック
-function thinkCard({ id, q, hint, answer, views, points }) {
+// ふりかえり（自己評価）の項目。生徒の画面と先生の記録で同じ文を使う
+const SELF_CHECKS = ['資料（地図・グラフ・統計）から読み取ったことを根拠にした', '説明で学んだ知識（用語）を使って「なぜそうなるのか」を説明した', '結論をはっきり書いた'];
+const countChars = t => (t || '').replace(/\s/g, '').length;
+function thinkCard({ id, q, hint, answer, views, points, lockLen }) {
   const saved = store.get('think', {})[id] || '';
   const card = el(`<div class="card think">
     <b>考えよう</b> ${viewTags(views)}
     <p style="margin:6px 0">${q}</p>
     ${hint ? `<details class="more"><summary>ヒント</summary><p class="small">${hint}</p></details>` : ''}
     <textarea placeholder="資料から読み取ったこと（根拠）→ 考えたこと（理由）→ 結論 の順に書いてみよう"></textarea>
-    <div class="row" style="margin-top:6px"><button type="button" class="btn small">解答例とふりかえり</button><span class="small muted saved"></span></div>
+    <div class="row" style="margin-top:6px"><button type="button" class="btn small ansb">解答例とふりかえり</button><span class="small muted saved"></span></div>
     <div class="ans" hidden></div>
   </div>`);
   const ta = $('textarea', card), ans = $('.ans', card), msg = $('.saved', card);
   ta.value = saved;
+  const ab = $('.ansb', card);
+  // 解答例は、自分で書いてから見る（lockLen 字以上で見られる）
+  const lock = () => { const n = countChars(ta.value); ab.disabled = !!lockLen && n < lockLen && !(store.get('viewed', {})[id]); ab.title = ab.disabled ? `${lockLen}字以上書くと見られます` : ''; ab.textContent = ab.disabled ? `解答例（${lockLen}字書くと見られる）` : '解答例とふりかえり'; };
   ta.addEventListener('input', () => {
     const all = store.get('think', {}); all[id] = ta.value; store.set('think', all);
-    msg.textContent = `${ta.value.length}字・自動で保存`;
+    msg.textContent = `${countChars(ta.value)}字・自動で保存`; lock();
   });
-  $('button', card).addEventListener('click', () => {
-    const checks = (points || ['資料（地図・グラフ・統計）から読み取ったことを根拠にした', '説明で学んだ知識（用語）を使って「なぜそうなるのか」を説明した', '結論をはっきり書いた']);
+  lock();
+  ab.addEventListener('click', () => {
+    const vw = store.get('viewed', {}); if (!vw[id]) { vw[id] = Date.now(); store.set('viewed', vw); }
+    const checks = (points || SELF_CHECKS);
     const done = store.get('checks', {})[id] || [];
     ans.innerHTML = `<div class="card ok" style="background:var(--panel)"><b>解答例</b><p style="margin:4px 0">${answer}</p></div>
       <p class="small" style="margin:6px 0 2px"><b>ふりかえり</b>（自分の答えにあてはまるものをチェック）</p>

@@ -29,13 +29,16 @@ function figTip(f) {
 }
 function figHint(f, text) {
   f.classList.add('fx');
-  const h = el(`<span class="fhint">${text}</span>`); f.appendChild(h);
+  // 図の説明文があれば、その行の頭に入れる（図の大事な所を隠さないように）
+  const h = el(`<span class="fhint">${text}</span>`), fc = f.querySelector(':scope > figcaption');
+  if (fc) { h.classList.add('incap'); const lg = fc.querySelector('.legend'); lg ? lg.appendChild(h) : fc.prepend(h); } else f.appendChild(h);
   const off = () => h.classList.add('used');
   f.addEventListener('pointerdown', off, { once: true });
 }
 // ドラッグ（axis: 'x' 横だけ／'y' たてだけ／'xy' 自由）。move(dx, dy, e) は画面の px、tap(e) は動かさずにさわったとき
 function onDrag(node, axis, { start, move, end, tap }) {
-  node.style.touchAction = axis === 'x' ? 'pan-y' : axis === 'y' ? 'pan-x' : 'none';
+  // スマホでは、自由に回す図でも縦のスワイプはページのスクロールにゆずる
+  node.style.touchAction = axis === 'x' || (axis === 'xy' && MOBILE.matches) ? 'pan-y' : axis === 'y' ? 'pan-x' : 'none';
   node.style.cursor = axis === 'x' ? 'ew-resize' : axis === 'y' ? 'ns-resize' : 'grab';
   let st = null, raf = 0, last = null;
   node.addEventListener('pointerdown', e => {
@@ -113,7 +116,7 @@ F.proj = (id, o = {}) => () => {
       svgNode.innerHTML = nf.querySelector('svg').innerHTML;
     }
   });
-  figHint(f, circ ? '✥ ドラッグで回す' : '↔ ドラッグで動かす');
+  figHint(f, circ ? '✥ なぞって地球を回す（線の形が変わる）' : '↔ 地図を左右になぞって中心をずらす');
   return f;
 };
 

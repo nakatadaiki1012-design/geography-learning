@@ -208,7 +208,7 @@ details.more summary { cursor: pointer; color: var(--accent); font-weight: 700; 
 .conds li.ok > span { background: var(--ok); color: #fff; }
 .conds .go { margin-left: auto; }
 .kterms .chips { margin: 6px 0 2px; }
-.kterms .tag { font-size: 12px; padding: 1px 8px; }
+.kterms span.tag { font-size: 12px; padding: 1px 8px; }
 .linkbox input { font-family: var(--font-data); }
 .batch summary { cursor: pointer; }
 .certhead { display: flex; gap: 12px; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; }
@@ -267,7 +267,8 @@ details.more summary { cursor: pointer; color: var(--accent); font-weight: 700; 
 
 /* 問題の資料（図や表）は横に並べる */
 .qfig { display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-start; }
-.qfig > div { display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-start; }
+.qfig > div { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 8px; align-items: start; width: 100%; }
+.qfig > div > svg { width: 100% !important; height: auto; }
 .qfig svg { max-height: 34vh; width: auto !important; max-width: 100%; }
 
 /* パソコン・Chromebook：画面の高さに収める */
@@ -275,7 +276,7 @@ details.more summary { cursor: pointer; color: var(--accent); font-weight: 700; 
   main { padding-bottom: 10px; }
   .tool { height: calc(100dvh - var(--top-h) - 24px); min-height: 420px; }
   .lesson[data-tab] { height: calc(100dvh - var(--top-h) - 24px); min-height: 440px; display: flex; flex-direction: column; padding: 10px 22px 10px; }
-  .lesson[data-tab] .lesson-head, .lesson[data-tab] .toolhint { display: none; }
+  .lesson[data-tab] .lesson-head { display: none; }
   .lesson[data-tab] .lnav { gap: 10px; }
   .lesson[data-tab] .lno { flex: 1; min-width: 0; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .lesson[data-tab] .ltitle { display: inline; font-family: var(--font-display); font-size: 20px; color: var(--ink); margin-left: 12px; }
@@ -356,7 +357,7 @@ details.more summary { cursor: pointer; color: var(--accent); font-weight: 700; 
   .brand small { display: none; }
   .grpnav { flex-wrap: nowrap; gap: 3px; min-width: 0; overflow-x: auto; scrollbar-width: none; }
   .grpnav button { padding: 3px 10px; font-size: 13px; white-space: nowrap; min-height: 34px; }
-  .icon-btn { padding: 3px 9px; font-size: 13px; min-height: 34px; min-width: 34px; }
+  .icon-btn { padding: 3px 9px; font-size: 16px; min-height: 40px; min-width: 40px; flex-shrink: 0; }
   .icon-btn .lbl { display: none; }
   .secnav { margin-top: 3px; scrollbar-width: none; }
   .secnav button { padding: 3px 11px; font-size: 13.5px; min-height: 34px; }
@@ -413,7 +414,7 @@ details.more summary { cursor: pointer; color: var(--accent); font-weight: 700; 
   .lnav .btn { padding: 3px 8px; font-size: 12px; }
   .lnav .btn .lbl { display: none; }
   .embed .tool { height: var(--embed-h, calc(100dvh - var(--top-h) - 14px)); min-height: 440px; }
-  .lesson[data-tab="tool"] .lesson-q, .lesson[data-tab="test"] .lesson-q, .lesson[data-tab="tool"] .toolhint { display: none; }
+  .lesson[data-tab="tool"] .lesson-q, .lesson[data-tab="test"] .lesson-q { display: none; }
   .lgrid { grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 6px; }
   .certgrid { grid-template-columns: 1fr; }
   .linkbox .row { flex-wrap: wrap !important; }
@@ -432,6 +433,45 @@ details.more summary { cursor: pointer; color: var(--accent); font-weight: 700; 
 }
 @media print {
   .top { position: static; }
+}
+
+/* わかりやすさの点検で直したところ */
+.tabs .ts { display: none; }
+.embed .stabs button.th { display: none; }          /* 授業の中では、道具の「考えよう」は③にまとめる */
+.toolhint b { color: var(--accent); }
+.side.more::after { content: '▼ 続きあり（パネルを上へなぞる）'; position: sticky; bottom: -1px; display: block; margin: 6px -16px 0; padding: 14px 0 4px; text-align: center; font-size: 12px; font-weight: 700; color: var(--accent); background: linear-gradient(transparent, var(--panel) 55%); pointer-events: none; }
+button.tag { border: 1px solid var(--line); cursor: pointer; font: inherit; font-size: 12px; line-height: 1.6; padding: 2px 9px; }
+button.tag.v { border-color: transparent; }
+.howto { margin: 6px 0 8px; font-size: 13px; }
+.howto ol { margin: 4px 0 0; padding-left: 1.4em; }
+.shl { display: flex; flex-wrap: wrap; gap: 4px; }
+.tnote { margin-top: 10px; }
+.certtbl th { white-space: nowrap; }
+.printonly { display: none; }
+.fhint.incap { position: static; display: inline-block; margin: 0 6px 0 0; padding: 0 7px; font-size: 12px; vertical-align: 1px; }
+.fhint.incap.used { opacity: .35; }
+@media (max-width: 900px) {
+  .tabs button { flex: 1 1 0; padding: 7px 2px; text-align: center; min-height: 36px; }
+  .tabs .tl { display: none; }
+  .tabs .ts { display: inline; }
+  .toolhint { font-size: 12px; line-height: 1.35; }
+  .side.more::after { margin: 6px -10px 0; }
+  .stage-foot .legend { flex-wrap: wrap; }
+  .lnav .btn { min-height: 34px; }
+  button.tag, .kterms button.tag { padding: 6px 10px; margin: 0 4px 4px 0; }
+  .tool.mq { grid-template-rows: minmax(52dvh, 1fr) auto; }
+  .tool.mq .stage-bar { flex-wrap: wrap; }
+}
+@media (min-width: 1600px) {
+  .lessons { max-width: 1500px; }
+  .lesson, .slide { font-size: 18px; }
+  .slide h3 { font-size: 24px; }
+}
+@media print {
+  :root, :root[data-theme="dark"] { color-scheme: light; --bg: #fff; --panel: #fff; --ink: #000; --muted: #333; --line: #999; }
+  body { color: #000; background: #fff !important; }
+  .printonly { display: block; }
+  .card, .lesson { box-shadow: none !important; }
 }
 </style>
 </head>
@@ -467,6 +507,7 @@ details.more summary { cursor: pointer; color: var(--accent); font-weight: 700; 
 <script src="js/lesson-figs.js"></script>
 <script src="js/lessons.js"></script>
 <script src="js/lessons-tankyu.js"></script>
+<script src="js/lesson-terms.js"></script>
 <script src="js/submit.js"></script>
 <script src="js/lesson-view.js"></script>
 <script src="js/main.js"></script>

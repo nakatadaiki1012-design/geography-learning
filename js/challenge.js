@@ -83,9 +83,9 @@ const READ_GEN = {
     const cand = [res, at - diff, res + 24, res - 24, res + 12].map(fmt);
     const choices = shuffle(Array.from(new Set([fmt(res)].concat(cand))).slice(0, 4));
     return {
-      q: `${A.name}（標準時子午線 ${meridianText(A.tz)}）が1月1日の${at}時のとき、${B.name}（標準時子午線 ${meridianText(B.tz)}）は何日の何時か。`,
+      q: `${A.name}（標準時子午線 ${meridianText(A.tz)}）が1月1日の${at}時のとき、${B.name}（標準時子午線 ${meridianText(B.tz)}）は何日の何時か。（サマータイムは考えない）`,
       choices: choices.map(c => c.replace('同じ日', '1月1日').replace('前日', '12月31日').replace('翌日', '1月2日')), a: choices.indexOf(fmt(res)), expFig: F.world({ pts: [[A.lon, A.lat, A.name], [B.lon, B.lat, B.name]], lines: [{ c: [[A.tz * 15, -60], [A.tz * 15, 75]], color: 'var(--shu)', w: 1.5 }, { c: [[B.tz * 15, -60], [B.tz * 15, 75]], color: 'var(--accent)', w: 1.5 }], cap: '線はそれぞれの標準時子午線' }),
-      exp: `経度15°で1時間の時差。${A.name}と${B.name}の時差は ${Math.abs(diff)} 時間で、${B.name}のほうが${diff >= 0 ? '進んでいる（東にある）' : '遅れている（西にある）'}。${at}時 ${diff >= 0 ? '＋' : '−'} ${Math.abs(diff)}時間 ＝ ${fmt(res)}。`
+      exp: diff === 0 ? `${A.name}と${B.name}は同じ標準時を使っているので、時差はない。答えは ${fmt(res)}。` : `時差は「標準時子午線の経度の差 ÷ 15°」で求める。${A.name}と${B.name}の時差は ${Math.abs(diff)} 時間で、${B.name}の時刻のほうが${diff > 0 ? '進んでいる' : '遅れている'}。${at}時 ${diff > 0 ? '＋' : '−'} ${Math.abs(diff)}時間 ＝ ${fmt(res)}。`
     };
   },
   pyramid() {
@@ -94,14 +94,14 @@ const READ_GEN = {
     const figEl = miniPyramid(buildPreset(id));
     const choices = ids.map(i => POP_PRESETS[i].name);
     const why = { japan: '0〜14歳が少なく、65歳以上が多いつぼ型。70代前半（第1次ベビーブーム）と40代後半（第2次ベビーブーム）がふくらんでいる。', ethiopia: '下ほど広い富士山型で、子どもの割合が高い。出生率が高く、平均寿命が短い発展途上国の形。', usa: '先進国だが、底がそれほど細くないつりがね型。移民が多く、出生率も先進国の中では比較的高い。', uae: '20〜40代の男性が極端に多い。南アジアなどからの出稼ぎ労働者が多いため。' }[id];
-    return { q: '次の人口ピラミッド（モデルによる）に当てはまる国はどれか。', figure: figEl, choices, a: ids.indexOf(id), exp: why, expFig: F.pyramids(ids.filter(i => i !== 'china').slice(0, 3)) };
+    return { q: '次の人口ピラミッド（モデルによる）に当てはまる国はどれか。', figure: figEl, choices, a: ids.indexOf(id), exp: why, expFig: F.pyramids([id].concat(ids.filter(i => i !== id)).slice(0, 3)) };
   },
   fixed() {
     return pick(READ_FIXED);
   }
 };
 const READ_FIXED = [
-  { q: '東京からの距離と方位が正しい地図を使って、東京から見たブエノスアイレスの方位を調べたい。最も適した図法はどれか。', choices: ['メルカトル図法', '東京を中心とする正距方位図法', 'モルワイデ図法', 'サンソン図法'], a: 1, exp: '正距方位図法は、図の中心からの距離と方位が正しい。目的に合わせて図法を選ぶことが大切。', expFig: F.proj('azeq', { east: true }) },
+  { q: '東京から見たブエノスアイレスの方位と距離を、地図上で正しく調べたい。最も適した図法はどれか。', choices: ['メルカトル図法', '東京を中心とする正距方位図法', 'モルワイデ図法', 'サンソン図法'], a: 1, exp: '正距方位図法は、図の中心からの距離と方位が正しい。目的に合わせて図法を選ぶことが大切。', expFig: F.proj('azeq', { east: true }) },
   { q: '次の大地形のうち、地震や火山の活動が最も活発なものはどれか。', choices: ['安定陸塊のカナダ楯状地', '古期造山帯のウラル山脈', '新期造山帯のアンデス山脈', '古期造山帯のアパラチア山脈'], a: 2, exp: 'アンデス山脈は環太平洋造山帯にあり、南アメリカプレートの下にナスカプレートが沈みこむ狭まる境界にある。', expFig: F.plates({ old: false, shield: false, volc: true, quakes: true }) },
   { q: 'ある都市は、高緯度にありながら冬でも平均気温が0℃を下回らない。この理由として最も適当なものはどれか。', choices: ['大陸の東岸にあり、冬に季節風が吹くから', '大陸の西岸にあり、暖流の上を吹く偏西風の影響を受けるから', '標高が高い所にあるから', '赤道に近いから'], a: 1, exp: '西ヨーロッパの都市（ロンドン・パリなど）は、北大西洋海流（暖流）と偏西風のおかげで、高緯度のわりに冬が温和（西岸海洋性気候）。', expFig: F.climate('london', 'tokyo', { cap: 'ロンドン（実線）と東京（点線）' }) },
   { q: '扇状地の扇央が、水田ではなく果樹園や畑に利用されることが多い理由として最も適当なものはどれか。', choices: ['土地が低く、水がたまりやすいから', '砂や小石が多く水はけがよいため、水が得にくいから', '海に近く塩分が多いから', '火山灰が厚くつもっているから'], a: 1, exp: '扇央は川の水が地下にしみこみやすく（水無川）、水を得にくい。扇端では地下水がわき出すため集落や水田が多い。', expFig: F.scheme('fan') },
@@ -151,7 +151,7 @@ registerTool('mapquiz', {
   name: '白地図クイズ',
   render(container, params = {}) {
     const S = { level: 'basic', region: 'all' };
-    const ui = toolShell(container, { foot: true });
+    const ui = toolShell(container, { foot: true }); ui.root.classList.add('mq');
     const W = 960, H = 500;
     const svg = d3.select(ui.wrap).append('svg').attr('viewBox', `0 0 ${W} ${H}`);
     const proj = d3.geoNaturalEarth1().rotate([-10, 0]).fitExtent([[8, 8], [W - 8, H - 8]], { type: 'Sphere' });
@@ -159,7 +159,7 @@ registerTool('mapquiz', {
     const base = drawBaseMap(zg, proj, { antarctica: false });
     const zoom = d3.zoom().scaleExtent([1, 12]).on('zoom', ev => zg.attr('transform', ev.transform));
     svg.call(zoom).on('dblclick.zoom', null);
-    ui.foot.innerHTML = '<span>ホイール・ピンチで拡大、ドラッグで移動。国をクリックして答える。</span>';
+    ui.foot.innerHTML = TAP === 'タップ' ? '<span>2本指で拡大、なぞって移動。国をタップして答える。</span>' : '<span>ホイールで拡大、ドラッグで移動。国をクリックして答える。</span>';
     ui.bar.appendChild(seg([{ v: 'basic', label: 'きほん（48か国）' }, { v: 'all', label: 'たくさん（110か国）' }], S.level, v => { S.level = v; start(); }));
     ui.bar.appendChild(selectBox([{ v: 'all', label: '世界全体' }].concat(Object.keys(REGIONS).map(k => ({ v: k, label: REGIONS[k] }))), S.region, v => { S.region = v; start(); }));
     const zb = el('<button type="button" class="chip">拡大をもどす</button>'); zb.addEventListener('click', () => svg.transition().call(zoom.transform, d3.zoomIdentity)); ui.bar.appendChild(zb);
@@ -183,7 +183,7 @@ registerTool('mapquiz', {
       } else {
         wrongOnce = true;
         d3.select(ev.currentTarget).attr('fill', '#e0533d').transition().delay(700).attr('fill', 'var(--land)');
-        renderSide(`<div class="card ng">そこは <b>${f.jp || '（名前なし）'}</b>。もう一度さがそう。${C_BY_ID[ans] ? `<br><span class="small">ヒント：${REGIONS[C_BY_ID[ans].reg]}・首都 ${C_BY_ID[ans].cap}</span>` : ''}</div>`, true);
+        renderSide(`<div class="card ng">そこは <b>${f.jp || countryName(f.id) || '別の国・地域'}</b>${pool().includes(f.id) ? '' : '（今回の出題外）'}。もう一度さがそう。${C_BY_ID[ans] ? `<br><span class="small">ヒント：${REGIONS[C_BY_ID[ans].reg]}・首都 ${C_BY_ID[ans].cap}</span>` : ''}</div>`, true);
       }
     });
     function renderSide(msg = '', retry = false) {

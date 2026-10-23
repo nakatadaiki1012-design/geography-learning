@@ -116,17 +116,19 @@ registerTool('topo', {
       const p = svgPoint(svgNode.node(), ev); const q = [p.x / sx, p.y / sx];
       if (!S.a || (S.a && S.b)) { S.a = q; S.b = null; } else S.b = q;
       draw(); renderProfile();
+      // 2点目を選んだら、断面図のタブを開く
+      if (S.b) revealPane($('.profile', ui.side));
     }).on('mousemove', ev => {
       if (!S.readout) return tip.hidden = true;
       const p = svgPoint(svgNode.node(), ev); const v = Hb(p.x / sx, p.y / sx);
       const r = ui.wrap.getBoundingClientRect(); tip.hidden = false; tip.textContent = `標高 約${Math.round(v)} m`; tip.style.left = (ev.clientX - r.left) + 'px'; tip.style.top = (ev.clientY - r.top) + 'px';
     }).on('mouseleave', () => { tip.hidden = true; });
-    ui.foot.innerHTML = '<span>地図を2回クリック（A→B）すると、その線にそった断面図をかく</span>';
+    ui.foot.innerHTML = `<span>地図を2回${TAP}（A→B）すると、その線にそった断面図をかく</span>`;
 
     function renderProfile() {
       const box = $('.profile', ui.side); if (!box) return;
       box.innerHTML = '';
-      if (!S.a || !S.b) { box.innerHTML = `<p class="small muted">${S.a ? 'もう1点（B）をクリック' : '地図の上で A 地点をクリック'}</p>`; return; }
+      if (!S.a || !S.b) { box.innerHTML = `<p class="small muted">${S.a ? `もう1点（B）を${TAP}` : `地図の上で A 地点を${TAP}`}</p>`; return; }
       const n = 160, pts = d3.range(n + 1).map(k => { const x = S.a[0] + (S.b[0] - S.a[0]) * k / n, y = S.a[1] + (S.b[1] - S.a[1]) * k / n; return { d: Math.hypot(x - S.a[0], y - S.a[1]) * T.cell, h: Hb(x, y) }; });
       const total = pts[n].d;
       const W2 = 360, H2 = 190, m = { l: 40, r: 10, t: 12, b: 26 };
@@ -165,12 +167,12 @@ registerTool('topo', {
         <div class="think"></div>`;
       $('.sc', ui.side).appendChild(seg([{ v: 25000, label: '2万5千分の1' }, { v: 50000, label: '5万分の1' }], S.scale, v => { S.scale = +v; draw(); }));
       $('.tg', ui.side).appendChild(toggleChip('段彩（色分け）', S.color, v => { S.color = v; draw(); }));
-      $('.tg', ui.side).appendChild(toggleChip('マウスで標高を表示', S.readout, v => { S.readout = v; }));
+      $('.tg', ui.side).appendChild(toggleChip(TAP === 'タップ' ? 'さわって標高を表示' : 'マウスで標高を表示', S.readout, v => { S.readout = v; }));
       $('.ve', ui.side).appendChild(seg([1, 2, 5, 10].map(v => ({ v, label: '×' + v })), S.ve, v => { S.ve = +v; renderProfile(); }));
       renderProfile();
       const tb = $('.task', ui.side);
       if (!S.task) {
-        tb.innerHTML = '<p class="small">地図に P 地点を出すので、等高線から標高を読み取ろう（マウスの標高表示は消えます）。</p><button type="button" class="btn small">P 地点を出す</button>';
+        tb.innerHTML = '<p class="small">地図に P 地点を出すので、等高線から標高を読み取ろう（標高の表示は消えます）。</p><button type="button" class="btn small">P 地点を出す</button>';
         $('button', tb).addEventListener('click', newTask);
       } else {
         tb.innerHTML = `<div class="row"><span>P 地点の標高は 約</span><input type="number" style="width:90px" step="10"><span>m</span><button type="button" class="btn small">答える</button></div><div class="res"></div>`;
@@ -355,6 +357,7 @@ registerTool('hazard', {
       svg.append('text').attr('x', hp[0] * sx).attr('y', hp[1] * sx + 24).attr('text-anchor', 'middle').attr('font-size', 12).attr('font-weight', 700).style('paint-order', 'stroke').style('stroke', '#fff').style('stroke-width', 3).text('自宅');
       TOWN.shelters.forEach(s => {
         const g = svg.append('g').attr('transform', `translate(${s.p[0] * sx},${s.p[1] * sx})`).style('cursor', 'pointer').on('click', () => { S.choice = s.id; draw(); renderSide(); });
+        g.append('circle').attr('r', 30).attr('fill', 'transparent');
         g.append('circle').attr('r', 15).attr('fill', S.choice === s.id ? '#1f5f8b' : '#fff').attr('stroke', '#1f5f8b').attr('stroke-width', 2.5);
         g.append('text').attr('y', 5).attr('text-anchor', 'middle').attr('font-size', 15).attr('font-weight', 700).attr('fill', S.choice === s.id ? '#fff' : '#1f5f8b').text(s.sym);
         g.append('text').attr('x', 18).attr('y', -8).attr('font-size', 15).attr('font-weight', 800).attr('fill', '#c8442a').style('paint-order', 'stroke').style('stroke', '#fff').style('stroke-width', 3).text(s.id);
@@ -389,7 +392,7 @@ registerTool('hazard', {
         <p class="lead">架空の町。地形分類図とハザードマップを重ねて、どこへ避難すべきか考えよう。</p>
         <div class="lv"></div>
         <div class="card mission"><b>ミッション</b><p style="margin:4px 0">${{ flood: '大雨で川の水位が上がっている。自宅（🏠）から、どの避難所へ逃げるのがよいだろう？', tsunami: '大きな地震がおきて津波警報が出た。自宅から、どこへ逃げるのがよいだろう？', landslide: '大雨が続き、土砂災害警戒情報が出た。自宅から、どの避難所へ逃げるのがよいだろう？' }[S.hz]}</p>
-        <p class="small muted" style="margin:0">地図の避難所（A〜E）をクリックして選ぶと、道すじと評価が出る。</p></div>
+        <p class="small muted" style="margin:0">地図の避難所（A〜E）を${TAP}するか、下の表から選ぶと、道すじと評価が出る。</p></div>
         <div class="res"></div>
         <h3>地形と災害の関係</h3>
         <table class="tbl"><tr><th>地形</th><th>注意すること</th></tr>
@@ -407,7 +410,7 @@ registerTool('hazard', {
     }
     function renderResult() {
       const box = $('.res', ui.side); if (!box) return;
-      if (!S.choice) { box.innerHTML = '<table class="tbl">' + TOWN.shelters.map(s => `<tr><td><b>${s.id}</b></td><td>${s.name}（${s.floors}階建て）</td></tr>`).join('') + '</table>'; return; }
+      if (!S.choice) { box.innerHTML = '<div class="shl">' + TOWN.shelters.map(s => `<button type="button" class="chip" data-s="${s.id}"><b>${s.id}</b> ${s.name}（${s.floors}階）</button>`).join('') + '</div>'; $$('.shl button', box).forEach(b => b.addEventListener('click', () => { S.choice = b.dataset.s; draw(); renderSide(); })); return; }
       const sh = TOWN.shelters.find(s => s.id === S.choice);
       const J = judge(sh);
       box.innerHTML = `<div class="card ${J.ok === true ? 'ok' : 'ng'}"><b>${sh.id}：${sh.name}</b> → ${J.ok === true ? '<span style="color:var(--ok)">◎ 安全に避難できる</span>' : J.ok === 'mid' ? '<span class="warn">△ 危険がある</span>' : '<span class="warn">× 避難所として危険</span>'}

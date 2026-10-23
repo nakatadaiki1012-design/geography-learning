@@ -25,16 +25,22 @@ registerTool('lessons', {
       cleanup && cleanup(); cleanup = null;
       const P = passed(), V = seen();
       const done = course.all.filter(l => P[l.id]).length;
-      const next = course.all.find(l => !V[l.id]) || course.all.find(l => !P[l.id]);
+      const last = course.all.find(l => l.id === store.get('last', {})[course.id]);
+      const fresh = !course.all.some(l => V[l.id]);
+      const next = (last && !P[last.id] ? last : null) || course.all.find(l => !P[l.id] && V[l.id]) || course.all.find(l => !V[l.id]) || course.all.find(l => !P[l.id]);
       root.innerHTML = `<div class="lesson">
         <div class="lesson-head"><div><span class="no">授業モード</span><h2>${course.name}</h2></div>
         <div style="margin-left:auto;text-align:right"><div class="small muted">合格した授業</div><div class="mono" style="font-size:24px;font-weight:600">${done} / ${course.all.length}</div></div></div>
-        <p class="lead mlead" style="font-size:14px">学習指導要領の項目の順に並んでいます。各授業は「問い → 説明 → 資料で考える → 考えよう（記述）→ 確認テスト」の流れ。確認テストで3問以上正解すると合格のはんこ。</p>
-        ${next ? `<button type="button" class="btn cont">続きから：${next.no} ${next.title}</button>` : ''}
+        <details class="howto"${fresh ? ' open' : ''}><summary><b>使い方</b>（はじめての人へ）</summary><ol class="small">
+          <li>授業をえらび、<b>①説明 → ②資料 → ③考える → ④テスト → ⑤提出</b> の順に、下のボタンで進む</li>
+          <li>④確認テストで4問中3問以上正解すると<b>合格</b>。③で用語を使って書き、④に合格すると<b>クリア</b>になり、⑤で先生に提出できる</li>
+          <li>書いた文や結果は<b>この端末のブラウザ</b>に自動で保存される</li>
+          <li>上の「見る・動かす・挑戦」では、地図やグラフの道具を自由に使える</li></ol></details>
+        ${next ? `<button type="button" class="btn cont">${fresh ? 'はじめる' : '続きから'}：${next.no} ${next.title}</button>` : ''}
         <div class="lesson-menu"></div></div>`;
       const mb = $('.lesson-menu', root);
       course.parts.forEach(p => {
-        const has = next && p.lessons.includes(next);
+        const has = (next && p.lessons.includes(next)) || p.lessons.some(l => l === last);
         const pd = p.lessons.filter(l => P[l.id]).length;
         const det = el(`<details class="lpart"${has || (!next && p === course.parts[0]) ? ' open' : ''}><summary><h3>${p.name}<small>${pd} / ${p.lessons.length} 合格</small></h3></summary><div class="lgrid"></div></details>`);
         const grid = $('.lgrid', det);
@@ -46,6 +52,12 @@ registerTool('lessons', {
         mb.appendChild(det);
       });
       batchSubmit($('.lesson', root), course);
+      const ex = el(`<details class="card tnote"><summary><b>先生へ</b>（提出のしくみ・共用の端末）</summary><div class="small" style="margin-top:6px">
+        <p>各授業の「⑤ 提出」で、生徒が提出用リンクをつくります。リンクには名前・テストの点・記述・使った用語が入り、開くと「学習の記録」が見られます（記録はサーバーに保存されず、リンクの中だけにあります）。</p>
+        <p>クリア条件：確認テスト3/4以上・考えようを${CLEAR.len}字以上・その授業の用語を${CLEAR.terms}つ以上。たくさん集まったら <a href="#teacher">提出の一覧（先生用）</a> に貼りつけると、表やCSVにできます。</p>
+        <p>記録はこの端末のブラウザに残ります。共用のChromebookでは、使い終わったら下のボタンで消してください。</p></div><div class="row cdev"></div></details>`);
+      $('.cdev', ex).appendChild(clearDeviceButton());
+      $('.lesson', root).appendChild(ex);
       const cb = $('.cont', root); if (cb) cb.addEventListener('click', () => go(next.id));
     }
 
@@ -54,15 +66,16 @@ registerTool('lessons', {
     function lesson(id, tab = 'slides') {
       const l = course.all.find(x => x.id === id); if (!l) return menu();
       const V = seen(); V[l.id] = true; store.set('seen', V);
+      const LA = store.get('last', {}); LA[course.id] = l.id; store.set('last', LA);
       const idx = course.all.indexOf(l), prev = course.all[idx - 1], next = course.all[idx + 1];
       root.innerHTML = `<div class="lesson">
         <div class="row lnav" style="justify-content:space-between;flex-wrap:nowrap"><button type="button" class="btn small ghost back">← <span class="lbl">授業の</span>一覧</button>
           <span class="no lno">${course.name} ${l.no}<b class="ltitle">${l.title}</b></span>
-          <span class="row" style="flex-wrap:nowrap;gap:4px"><button type="button" class="btn small ghost pv" ${prev ? '' : 'disabled'}>← 前<span class="lbl">の授業</span></button><button type="button" class="btn small ghost nx" ${next ? '' : 'disabled'}>次<span class="lbl">の授業</span> →</button></span></div>
+          <span class="row" style="flex-wrap:nowrap;gap:4px"><button type="button" class="btn small ghost pv" ${prev ? '' : 'disabled'} title="前の授業">‹ ${prev ? prev.no : ''}<span class="lbl">へ</span></button><button type="button" class="btn small ghost nx" ${next ? '' : 'disabled'} title="次の授業">${next ? next.no : ''}<span class="lbl">へ</span> ›</button></span></div>
         <div class="lesson-head" style="margin-top:6px"><div><h2>${l.title}</h2></div></div>
         <div class="lesson-q"><b>問い</b>　${l.q}</div>
         <div class="tabs" role="tablist">
-          <button type="button" data-t="slides">① 説明</button><button type="button" data-t="tool">② 資料で考える</button><button type="button" data-t="think">③ 考えよう</button><button type="button" data-t="test">④ 確認テスト${passed()[l.id] ? ' 🏅' : ''}</button><button type="button" data-t="submit">⑤ 提出</button></div>
+          <button type="button" data-t="slides">①<span class="tl"> </span>説明</button><button type="button" data-t="tool">②<span class="tl"> </span>資料<span class="tl">で考える</span></button><button type="button" data-t="think">③<span class="tl"> </span>考え<span class="tl">よう</span><span class="ts">る</span></button><button type="button" data-t="test">④<span class="tl"> 確認</span>テスト<span class="medal">${passed()[l.id] ? '🏅' : ''}</span></button><button type="button" data-t="submit">⑤<span class="tl"> </span>提出</button></div>
         <div class="tabbody"></div></div>`;
       $('.back', root).addEventListener('click', () => { location.hash = `#lessons/${course.id}`; });
       if (prev) $('.pv', root).addEventListener('click', () => go(prev.id));
@@ -74,7 +87,7 @@ registerTool('lessons', {
       let si = 0;
       function show(t) {
         cleanup && cleanup(); cleanup = null;
-        $$('.tabs button', root).forEach(b => b.setAttribute('aria-selected', String(b.dataset.t === t)));
+        $$('.tabs button', root).forEach(b => { b.setAttribute('aria-selected', String(b.dataset.t === t)); if (b.dataset.t === t) b.scrollIntoView({ block: 'nearest', inline: 'nearest' }); });
         $('.lesson', root).dataset.tab = t;
         body.innerHTML = '';
         body.scrollTop = 0;
@@ -83,28 +96,34 @@ registerTool('lessons', {
         if (t !== 'slides' && t !== 'test') foot.set({ left: { label: `← ${TNAME[TABS[i - 1]]}`, fn: () => show(TABS[i - 1]) }, center: dotsHtml(5, i), right: t === 'submit' ? (next ? { label: '次の授業 →', fn: () => go(next.id) } : { label: '授業の一覧 →', fn: () => { location.hash = `#lessons/${course.id}`; } }) : { label: `${TNAME[TABS[i + 1]]} →`, fn: () => show(TABS[i + 1]) } });
         if (t === 'slides') slides();
         if (t === 'tool') {
-          body.appendChild(el(`<p class="small muted toolhint" style="margin:0 0 8px">${l.tool.label}：地図やグラフを動かして、「問い」の答えの手がかりをさがそう。</p>`));
+          body.appendChild(el(`<p class="small toolhint" style="margin:0 0 6px"><b>この資料でやること</b>　「${l.tool.label}」をさわって、③の問いの手がかりをさがそう</p>`));
           const box = el('<div class="embed"></div>'); body.appendChild(box);
           // スマホでは、授業の見出しの下に残った高さいっぱいに道具を表示する
           if (MOBILE.matches) box.style.setProperty('--embed-h', Math.max(400, window.innerHeight - box.getBoundingClientRect().top - 60) + 'px');
           cleanup = TOOLS[l.tool.id].render(box, Object.assign({}, l.tool.params));
         }
         if (t === 'think') {
-          body.appendChild(el(`<div class="card"><b>使う「地理的な見方・考え方」</b><div class="views">${(l.think.views || []).map(k => `<span class="tag v">${VIEWS[k]}</span><span class="small muted" style="margin-right:10px">${VIEW_DESC[k]}</span>`).join('')}</div></div>`));
-          // 知識（説明で学んだ用語）を活かして書く
+          // 知識（説明で学んだ用語）を活かして書く。見方・考え方は下の「考えよう」に出る
           const terms = lessonTerms(l);
-          const kc = el(`<div class="card kterms"><b>知識を活かそう</b>　<span class="small muted">①説明で学んだ用語を使って書くと、根拠のある説明になる（2つ以上使うのがクリア条件）</span><div class="chips"></div><div class="small kcount"></div></div>`);
+          const kc = el(`<div class="card kterms"><div><b>知識を活かそう</b> <span class="small muted">①説明で学んだ用語を${CLEAR.terms}つ以上使って書こう</span></div><div class="chips"></div><div class="small kcount"></div></div>`);
           body.appendChild(kc);
-          const tc = thinkCard(Object.assign({ id: 'lesson-' + l.id }, l.think));
+          const tc = thinkCard(Object.assign({ id: 'lesson-' + l.id, lockLen: CLEAR.len }, l.think));
           body.appendChild(tc);
           const ta = $('textarea', tc);
           const upd = () => {
             const used = terms.filter(x => termUsed(x, ta.value));
-            $('.chips', kc).innerHTML = terms.map(x => `<span class="tag ${used.includes(x) ? 'v' : ''}">${used.includes(x) ? '✓ ' : ''}${x}</span>`).join('');
-            const n = ta.value.replace(/\s/g, '').length;
+            $('.chips', kc).innerHTML = terms.map((x, i) => `<button type="button" class="tag ${used.includes(x) ? 'v' : ''}" data-i="${i}" title="押すと入力欄に入る">${used.includes(x) ? '✓ ' : '＋'}${termName(x)}</button>`).join('');
+            const n = countChars(ta.value);
             $('.kcount', kc).innerHTML = `使った用語 <b>${used.length}</b>つ・${n}字　${used.length >= CLEAR.terms && n >= CLEAR.len ? '<b style="color:var(--ok)">✓ 記述のクリア条件OK</b>' : `<span class="muted">（クリア条件：用語${CLEAR.terms}つ以上・${CLEAR.len}字以上）</span>`}`;
           };
           ta.addEventListener('input', upd); upd();
+          $('.chips', kc).addEventListener('click', e => {
+            const b = e.target.closest('button[data-i]'); if (!b) return;
+            const w = termName(terms[+b.dataset.i]), s = ta.selectionStart ?? ta.value.length;
+            ta.value = ta.value.slice(0, s) + w + ta.value.slice(ta.selectionEnd ?? s);
+            ta.focus(); ta.setSelectionRange(s + w.length, s + w.length);
+            ta.dispatchEvent(new Event('input', { bubbles: true }));
+          });
         }
         if (t === 'submit') submitPane(body, course, l, show);
         if (t === 'test') test();
@@ -123,23 +142,32 @@ registerTool('lessons', {
         });
       }
       function test() {
-        let k = 0, score = 0;
-        const qs = l.test;
+        let k = 0, score = 0; const wrong = [];
+        // 挑戦するたびに選択肢の順番を入れかえる（位置を覚えるだけでは合格できないように）
+        const qs = l.test.map(([q, choices, a, exp], i) => {
+          const order = shuffle(choices.map((c, j) => j));
+          return [q, order.map(j => choices[j]), order.indexOf(a), exp];
+        });
         const step = () => {
           body.innerHTML = '';
           if (k >= qs.length) {
             const ok = score >= 3;
-            if (ok) { const P = passed(); P[l.id] = true; store.set('passed', P); $('.tabs button[data-t="test"]', root).textContent = '④ 確認テスト 🏅'; }
-            const SC = store.get('scores', {}); if (!SC[l.id] || SC[l.id].s < score) { SC[l.id] = { s: score, t: Date.now() }; store.set('scores', SC); }
+            if (ok) { const P = passed(); P[l.id] = true; store.set('passed', P); $('.tabs button[data-t="test"] .medal', root).textContent = '🏅'; }
+            // 最高点・1回目の点・挑戦した回数・はじめて合格した日時を残す
+            const SC = store.get('scores', {}), o = SC[l.id] || {};
+            SC[l.id] = { s: Math.max(o.s ?? 0, score), t: Date.now(), first: o.first ?? score, tries: (o.tries || 0) + 1, pt: o.pt || (ok ? Date.now() : null) };
+            store.set('scores', SC);
             body.appendChild(el(`<div class="card ${ok ? 'ok' : 'ng'}" style="text-align:center;padding:16px"><div style="font-size:22px;font-family:var(--font-display);font-weight:800">${score} / ${qs.length} 問 正解</div>
-              ${ok ? '<div style="margin:10px 0"><span class="hanko">合格</span></div>' : '<p>3問以上で合格。説明をもう一度読んでから挑戦しよう。</p>'}</div>`));
-            foot.set({ left: { label: '↺ もう一度', fn: test }, center: `<span class="small muted">結果</span>`, right: { label: '⑤ 提出 →', fn: () => show('submit') } });
+              ${ok ? '<div style="margin:10px 0"><span class="hanko">合格</span></div>' : '<p style="margin:4px 0 0">3問以上で合格。説明を見直してから、もう一度挑戦しよう（選択肢の順番は毎回かわる）。</p>'}</div>`));
+            if (wrong.length) body.appendChild(el(`<div class="card"><b>まちがえた問題</b><ul class="small" style="margin:4px 0 0;padding-left:1.2em">${wrong.map(([q, c, a, e]) => `<li>${q} → <b>${c[a]}</b>${e ? `<span class="muted">（${e}）</span>` : ''}</li>`).join('')}</ul></div>`));
+            foot.set(ok ? { left: { label: '↺ もう一度', fn: test }, center: `<span class="small muted">結果</span>`, right: { label: '⑤ 提出 →', fn: () => show('submit') } }
+              : { left: { label: '← ① 説明', fn: () => { si = 0; show('slides'); } }, center: `<span class="small muted">結果</span>`, right: { label: '↺ もう一度', fn: test } });
             return;
           }
           const [q, choices, a, exp] = qs[k];
           foot.set({ left: { label: `← ${TNAME.think}`, fn: () => show('think') }, center: `<span class="small muted">第 ${k + 1} 問 / ${qs.length}　正解 ${score}</span>`, right: { label: k + 1 < qs.length ? '次の問題 →' : '結果を見る →', disabled: true, fn: () => { k++; step(); } } });
           choiceQuestion(body, { q, choices, a, exp, expFig: ((FG[l.id] || {}).t || [])[k] }, ok => {
-            if (ok) score++;
+            if (ok) score++; else wrong.push(qs[k]);
             $('.fc', foot).innerHTML = `<span class="small muted">第 ${k + 1} 問 / ${qs.length}　正解 ${score}</span>`;
             foot.enableRight();
           });
