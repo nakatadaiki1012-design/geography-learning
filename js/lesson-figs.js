@@ -58,8 +58,8 @@ const FG = (() => {
 
     t1: { s: [F.plateAnim('subduct'), F.plates({ bounds: true, newb: false, old: false, shield: false }), RES],
       t: [F.world({ rot: -150, pts: [[-155.3, 19.4, 'ハワイ島']], cap: 'ハワイ：プレートの境界から遠いホットスポットの火山' }), F.block('river'), F.world({ region: 'lamerica', hl: ['152'], names: ['152'], cap: 'チリ：アンデス山脈（新期造山帯）の銅' }), F.plateAnim('diverge')] },
-    t2: { s: [F.block('river'), F.pair(F.block('rias'), F.block('fjord')), F.block('karst')],
-      t: [F.block('fan'), F.pair(F.block('rias'), F.block('fjord')), F.scheme('floodplain'), F.block('karst')] },
+    t2: { s: [F.block('river'), F.scheme('oxbow'), F.block('delta'), F.scheme('deltas'), F.block('terrace'), F.pair(F.block('rias'), F.block('fjord')), F.block('cterrace'), F.scheme('sandcoast'), F.scheme('coral'), F.block('glacier'), F.block('mesa'), F.scheme('strata'), F.block('karst')],
+      t: [F.block('fan'), F.scheme('coast'), F.scheme('floodplain'), F.block('mesa')] },
     t3: { s: [F.climate('quito', 'manaus', { cap: 'キト（標高2850m・実線）とマナオス（低地・点線）：同じ赤道付近でも標高で気温がちがう' }), F.circulation(), F.world({ arrows: [[[-60, 36], [-12, 56], '北大西洋海流', '#d9473b'], [[-76, -42], [-80, -8], 'ペルー海流', '#3f7fc0'], [[14, -36], [10, -16], 'ベンゲラ海流', '#3f7fc0'], [[124, 22], [143, 37], '黒潮', '#d9473b']], pts: [[-70, -24, 'アタカマ砂漠'], [15, -23, 'ナミブ砂漠']], legend: [['#d9473b', '暖流'], ['#3f7fc0', '寒流']], cap: '主な海流と海岸砂漠' })],
       t: [F.circulation(), F.circulation(), F.world({ region: 'lamerica', pts: [[-70, -24, 'アタカマ砂漠']], arrows: [[[-78, -45], [-80, -8], 'ペルー海流', '#3f7fc0']] }), F.climate('quito', 'manaus')] },
     t4: { s: [F.climate('manaus'), SOIL],

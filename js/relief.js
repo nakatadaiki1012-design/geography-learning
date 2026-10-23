@@ -40,7 +40,8 @@ const BLOCKS = {
   river: (() => {
     const w = 200, h = 120, cell = 50;
     const rx = y => y < 45 ? 62 + 4 * Math.sin(y / 5) : 62 + (y - 45) * 0.55 + 20 * Math.sin((y - 45) / 7.5) * Math.min(1, (y - 45) / 12);
-    const coast = x => 106 + 3 * Math.sin(x / 13) + 9 * Math.exp(-(((x - rx(106)) / 16) ** 2));
+    // 海岸線：河口に三角州が円弧状に張り出す
+    const coast = x => 97 + 2 * Math.sin(x / 13) + 15 * Math.max(0, 1 - ((x - rx(100)) / 26) ** 2) ** 1.5;
     const z = new Float32Array(w * h), water = new Uint8Array(w * h);
     for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
       const k = y * w + x, d = Math.abs(x - rx(y));
@@ -52,12 +53,12 @@ const BLOCKS = {
       if (y >= 50 && d < 6) v += 1.8 * Math.max(0, 1 - Math.abs(d - 3.8) / 2.4);  // 自然堤防
       if (d < 2.2) { v -= 3; water[k] = 1; }
       const od = Math.abs(Math.hypot(x - 142, (y - 76) * 1.3) - 9);
-      if (od < 1.7 && y > 66) { v = Math.min(v, plain - 2.5); water[k] = 1; }  // 三日月湖
+      if (od < 1.8 && Math.abs(Math.atan2((y - 76) * 1.3, x - 142)) < 2.0) { v = Math.min(v, plain - 2.5); water[k] = 1; }  // 三日月湖（取り残された川の曲がり）
       if (y > coast(x)) { v = -4 - (y - coast(x)) * 0.6; water[k] = 0; }
       z[k] = v;
     }
     return { w, h, cell, z, water, sea: true, title: '川の上流から河口まで（ブロック図）',
-      labels: [[rx(14) + 8, 14, 'V字谷'], [150, 8, '山地'], [62, 50, '扇状地'], [rx(80) + 9, 80, '自然堤防'], [30, 82, '後背湿地（水田）'], [142, 66, '三日月湖'], [rx(104), 104, '三角州'], [175, 116, '海']],
+      labels: [[rx(14) + 8, 14, 'V字谷'], [150, 8, '山地'], [62, 50, '扇状地'], [rx(80) + 9, 80, '自然堤防'], [30, 82, '後背湿地（水田）'], [142, 66, '三日月湖'], [rx(100) + 8, 104, '三角州'], [175, 116, '海']],
       marks: [...d3.range(50, 104, 5).map(y => ({ x: rx(y) + (y % 10 ? 4.5 : -4.5), y, t: 'house' })), ...[[25, 70], [35, 92], [160, 95], [180, 72], [110, 62]].map(([x, y]) => ({ x, y, t: 'rice' }))] };
   })(),
   fan: (() => {
@@ -125,6 +126,90 @@ const BLOCKS = {
       labels: [[rx(30) + 18, 30, '低い段丘面'], [rx(30) + 36, 22, '高い段丘面'], [rx(70) - 26, 76, '段丘崖'], [rx(90), 90, '川']],
       marks: [...d3.range(12, 96, 12).map(y => ({ x: rx(y) - 17, y, t: 'house' })), ...d3.range(10, 96, 16).map(y => ({ x: rx(y) + 36, y, t: 'field' }))] };
   })(),
+  // 三角州：川が海に出る所で枝分かれし（分流）、運んだ砂や泥が海に張り出してたまる
+  delta: (() => {
+    const w = 160, h = 115, cell = 40, FX = 80, FY = 40;
+    const yc = x => 42 + 50 * Math.exp(-(((x - 80) / 30) ** 2)) + 1.5 * Math.sin(x / 3.5);  // 海岸線（三角州が海に円弧状に張り出す）
+    const bez = (a, c, b) => d3.range(0, 1.001, 0.04).map(t => [(1 - t) ** 2 * a[0] + 2 * (1 - t) * t * c[0] + t * t * b[0], (1 - t) ** 2 * a[1] + 2 * (1 - t) * t * c[1] + t * t * b[1]]);
+    const main = d3.range(0, FY + 1, 2).map(y => [80 + 4 * Math.sin(y / 7), y]);
+    const mouths = [42, 64, 86, 108, 122].map(x => [x, yc(x) + 2]);
+    const branches = mouths.map(m => bez([FX, FY], [(FX + m[0]) / 2, (FY + m[1]) / 2 - 8], m));
+    const lines = [main].concat(branches);
+    const dist = (x, y) => { let best = 1e9; lines.forEach(L => { for (let i = 0; i < L.length - 1; i++) { const [ax, ay] = L[i], [bx, by] = L[i + 1], vx = bx - ax, vy = by - ay, t = clamp(((x - ax) * vx + (y - ay) * vy) / (vx * vx + vy * vy), 0, 1); best = Math.min(best, Math.hypot(x - ax - t * vx, y - ay - t * vy)); } }); return best; };
+    const z = new Float32Array(w * h), water = new Uint8Array(w * h);
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+      const k = y * w + x, c = yc(x), d = dist(x, y);
+      let v;
+      if (y <= c) {
+        v = 1 + (c - y) * 0.09 + 0.2 * noise2(x / 3, y / 3) + Math.max(0, 18 - y) * 1.2;
+        v += 0.8 * Math.exp(-(((d - 2.6) / 1.3) ** 2));  // 自然堤防
+        if (d < 1.8) { v = Math.max(0.3, v - 1.2); water[k] = 1; }
+      } else v = Math.max(-14, -0.5 - (y - c) * 0.5);
+      z[k] = v;
+    }
+    return { w, h, cell, z, water, sea: true, vshare: 0.2, title: '三角州（ブロック図）：川が枝分かれし（分流）、運んだ砂や泥が海に張り出してたまる',
+      labels: [[80, 74, '三角州（低く平らな土地）'], [mouths[0][0] + 5, mouths[0][1] - 7, '分流'], [80 + 4 * Math.sin(16 / 7), 16, '川'], [140, 104, '海'], [mouths[4][0] - 2, mouths[4][1] - 2, '河口']],
+      marks: [...[[62, 58], [98, 58], [70, 76], [92, 76], [52, 52], [108, 52], [80, 88]].map(([x, y]) => ({ x, y, t: 'rice' })), ...[[FX + 4, 24], [FX - 3, 32], [FX + 4, 36]].map(([x, y]) => ({ x, y, t: 'house' }))] };
+  })(),
+  // メサ・ビュート：水平な地層のうち、かたい地層が上に残った台地と丘
+  mesa: (() => {
+    const w = 150, h = 100, cell = 30, TOP = 120;
+    const prof = (s, top = TOP) => s <= 0 ? top : s < 1.8 ? top - (top - 72) * (s / 1.8) : Math.max(0, 72 - (s - 1.8) * 5.5);
+    const z = new Float32Array(w * h), dry = new Uint8Array(w * h);
+    const wx = y => 74 + 8 * Math.sin(y / 12);
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+      const k = y * w + x;
+      const edge = 17 + 5 * Math.sin(x / 11) + 2.5 * noise2(x / 4, 2);
+      const sBack = y - edge;
+      const sMesa = (Math.hypot((x - 42) / 25, (y - 60) / 13) - 1) * 13 + 1.2 * noise2(x / 3, y / 3);
+      const sButte = Math.hypot(x - 108, y - 60) - 5.5;
+      const sSpire = Math.hypot(x - 131, y - 80) - 2.2;
+      let v = Math.max(4 + 1.2 * noise2(x / 5, y / 5) - y * 0.02, prof(sBack), prof(sMesa), prof(sButte), prof(sSpire, 98));
+      if (y > edge + 2 && Math.abs(x - wx(y)) < 1.6 && v < 20) { v -= 1.8; dry[k] = 1; }  // ワジ
+      z[k] = v;
+    }
+    return { w, h, cell, z, water: new Uint8Array(w * h), dry, flat: true, vshare: 0.42,
+      bands: [[0, '#e6c08a'], [36, '#d48f5c'], [62, '#bf6d42'], [90, '#dba56c'], [106, '#9a4c2b']],
+      title: 'メサとビュート（ブロック図）：かたい地層（赤茶色）が上に残り、平らな頂上と急ながけができる',
+      labels: [[42, 60, 'メサ（テーブル状の台地）'], [108, 60, 'ビュート（とう状の丘）'], [wx(88), 88, 'ワジ（かれ川）'], [120, 8, '台地'], [131, 80, 'さらに小さな柱']] };
+  })(),
+  // 氷河地形：ホルン・カール・U字谷・モレーン・氷河湖
+  glacier: (() => {
+    const w = 160, h = 110, cell = 40;
+    const x0 = y => 80 + 5 * Math.sin(y / 22);
+    const z = new Float32Array(w * h), water = new Uint8Array(w * h);
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+      const k = y * w + x, d = Math.abs(x - x0(y));
+      // まわりの山：とがった尾根（アレート）が並ぶ
+      let v = 2650 - y * 6 + 170 * Math.abs(noise2(x / 2.2, y / 2.2)) + 120 * Math.abs(Math.sin(x / 7));
+      v = Math.max(v, 3050 - 70 * Math.hypot(x - 80, (y - 5) * 1.2));  // ホルン（三方からけずられたとがった峰）
+      // カール：谷の頭と、左の山腹（おわん形のくぼ地。底は平ら、まわりは急ながけ）
+      [[80, 22, 1950, 12], [36, 46, 2000, 13]].forEach(([cx, cy, fl, r]) => { const rr = Math.hypot(x - cx, (y - cy) * 1.15); v = Math.min(v, fl + 9 * Math.max(0, rr - r * 0.45) ** 2); });
+      // U字谷：底が広く平らで、谷の壁が急
+      if (y > 20) { const fl = 1950 - (y - 22) * 11; v = Math.min(v, fl + 4.5 * Math.max(0, d - 10) ** 2); }
+      // モレーン：氷河が運んだ土砂が、谷をふさぐ弓形の丘に
+      v += 190 * Math.exp(-(((y - 96 + 0.02 * (x - x0(96)) ** 2) / 2.6) ** 2)) * (d < 26 ? 1 : 0);
+      z[k] = v;
+    }
+    // モレーンにせき止められた氷河湖
+    const crest = d3.min(d3.range(-6, 7).map(dx => z[96 * w + Math.round(x0(96) + dx)]));
+    for (let y = 70; y < 96; y++) for (let x = 0; x < w; x++) { const k = y * w + x; if (Math.abs(x - x0(y)) < 22 && z[k] < crest - 25) { z[k] = crest - 25; water[k] = 1; } }
+    return { w, h, cell, z, water, snow: 2380, vshare: 0.5, title: '氷河地形（ブロック図）：氷河がけずり、運んでできた地形',
+      labels: [[80, 5, 'ホルン（とがった峰）'], [80, 24, 'カール（谷の頭）'], [36, 46, 'カール'], [x0(58) + 3, 58, 'U字谷'], [x0(88), 88, '氷河湖'], [x0(97) + 17, 97, 'モレーン']] };
+  })(),
+  // 海岸段丘：海でけずられた平らな面が、土地の隆起で階段状に並ぶ
+  cterrace: (() => {
+    const w = 150, h = 100, cell = 20;
+    const z = new Float32Array(w * h);
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+      const t = 76 - y + 2.5 * Math.sin(x / 9) + 1.2 * noise2(x / 4, y / 4);
+      const st = (a, hh) => hh / (1 + Math.exp(-(t - a) / 0.6));
+      z[y * w + x] = t < 0 ? -3 + t * 0.9 : st(0.5, 30) + st(16, 34) + st(34, 38) + (t > 52 ? (t - 52) * 11 : 0) + 1.5 * noise2(x / 2, y / 2);
+    }
+    return { w, h, cell, z, water: new Uint8Array(w * h), sea: true, title: '海岸段丘（ブロック図）：海でけずられた平らな面が、隆起して階段状に並ぶ',
+      labels: [[70, 71, '低い段丘面'], [100, 52, '段丘崖'], [44, 36, '高い段丘面'], [128, 76, '海食崖'], [120, 95, '海'], [75, 6, '山地']],
+      marks: [...d3.range(14, 140, 18).map(x => ({ x, y: 68 + 2.5 * Math.sin(x / 9), t: 'house' })), ...d3.range(20, 140, 24).map(x => ({ x, y: 48 + 2.5 * Math.sin(x / 9), t: 'field' }))] };
+  })(),
   volcano: (() => {
     const T = TERRAINS.volcano, z = Float32Array.from(makeGrid(T));
     return { w: T.w, h: T.h, cell: T.cell, z, water: new Uint8Array(T.w * T.h), title: '成層火山（ブロック図）', labels: [[75, 44, '火口'], [40, 80, '山すそ（温泉・畑）']], marks: [{ x: 30, y: 85, t: 'house' }, { x: 112, y: 88, t: 'house' }] };
@@ -148,6 +233,8 @@ function drawBlock(B, sh, tilt) {
   const colorK = k => {
     if (B.sea && z[k] < 0) return mix('#4f8fcb', clamp(1 + z[k] / (relief * 1.2), 0.55, 1));
     if (water[k]) return mix('#5f9fd6', 0.9 + 0.12 * shd[k]);
+    if (B.dry && B.dry[k]) return mix('#c49a62', 0.6 + 0.5 * shd[k]);
+    if (B.bands) { let bc = B.bands[0][1]; B.bands.forEach(([t, col]) => { if (z[k] >= t) bc = col; }); return mix(bc, 0.5 + 0.62 * shd[k]); }
     let c = B.rock === 'lime' ? d3.interpolateRgb('#c9d6a6', '#e8e4d6')(clamp((z[k] - 50) / 25, 0, 1)) : HYPSO(clamp(z[k] / Math.max(zmax, 80), 0, 1));
     if (B.snow && z[k] > B.snow) c = '#f6f6f4';
     return mix(c, 0.5 + 0.62 * shd[k]);
@@ -169,6 +256,17 @@ function drawBlock(B, sh, tilt) {
     const bot = pts.slice().reverse().map(([x, y]) => P(x, y, base));
     ctx.beginPath(); top.concat(bot).forEach((p, i) => i ? ctx.lineTo(...p) : ctx.moveTo(...p)); ctx.closePath();
     ctx.save(); ctx.clip();
+    if (B.bands) {
+      B.bands.forEach(([t, col], i) => {
+        const t2 = i + 1 < B.bands.length ? B.bands[i + 1][0] : zmax + 50, lo = i === 0 ? base : t;
+        ctx.fillStyle = mix(col, dark * 0.92).formatHex();
+        ctx.beginPath(); pts.forEach(([x, y], n) => { const p = P(x, y, t2); n ? ctx.lineTo(...p) : ctx.moveTo(...p); });
+        pts.slice().reverse().forEach(([x, y]) => ctx.lineTo(...P(x, y, lo))); ctx.closePath(); ctx.fill();
+      });
+      ctx.restore();
+      ctx.strokeStyle = 'rgba(60,40,20,.6)'; ctx.lineWidth = 1; ctx.beginPath(); top.concat(bot).forEach((p, i) => i ? ctx.lineTo(...p) : ctx.moveTo(...p)); ctx.closePath(); ctx.stroke();
+      return;
+    }
     const layers = B.rock === 'lime' ? ['#d9d4c4', '#c8c2b0', '#d9d4c4', '#bdb6a2'] : ['#c9a978', '#b48f60', '#c2a170', '#9c7b55', '#8a7560'];
     const th = (relief * 1.25) / layers.length;
     for (let n = 0; n < layers.length + 2; n++) {
@@ -202,7 +300,8 @@ F.block = (key, o = {}) => () => {
   const svgNode = f.querySelector('svg'), svg = d3.select(svgNode);
   const draw = () => {
     const r = drawBlock(B, sh, tilt);
-    svgNode.setAttribute('viewBox', `0 0 ${r.W} ${r.H}`);
+    const padT = Math.round(r.W / 46 * 2.6);
+    svgNode.setAttribute('viewBox', `0 ${-padT} ${r.W} ${r.H + padT}`);
     svg.selectAll('*').remove();
     svg.append('image').attr('href', r.cv.toDataURL()).attr('width', r.W).attr('height', r.H);
     // 家・田・果樹園などの記号

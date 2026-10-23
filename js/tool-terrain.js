@@ -1,13 +1,14 @@
 /* 動かす：地形図を読む（等高線・断面図・標高の読み取り）と、防災シミュレーション（ハザードマップ・避難経路） */
 
 // --- 地形をつくる（架空の地形。1マス＝ cell m） ---
+const DELTA_COAST = x => 46 + 28 * Math.max(0, 1 - ((x - 75) / 54) ** 2) ** 1.5 + Math.sin(x / 3);
 const TERRAINS = {
   ridge: { name: '尾根と谷', w: 150, h: 100, cell: 20, desc: '山の等高線が低い方へ張り出している所が尾根、高い方へ食いこんでいる所が谷。', f: (x, y) => {
     const peak = 520 * Math.exp(-(((x - 70) / 45) ** 2 + ((y - 45) / 38) ** 2));
     const valleys = 55 * Math.sin(Math.atan2(y - 45, x - 70) * 5) * Math.min(1, Math.hypot(x - 70, y - 45) / 25);
     return Math.max(20, 60 + peak + valleys * Math.exp(-((Math.hypot(x - 70, y - 45) / 60) ** 2)) + 30 * Math.sin(x / 9) * Math.cos(y / 11));
   } },
-  fan: { name: '扇状地', w: 150, h: 100, cell: 20, desc: '山地から平地に出る谷口に、川が運んだ砂や石がたまってできた扇形の地形。等高線が谷口を中心に同心円状（扇形）に並ぶ。', f: (x, y) => {
+  fan: { name: '扇状地', w: 150, h: 100, cell: 20, desc: '山地から平地に出る谷口に、川が運んだ砂や石がたまってできた扇形の地形。等高線が谷口を中心に同心円状（扇形）に並ぶ。点線の川は水無川（扇央で水が地下にしみこむ）。', f: (x, y) => {
     const mount = y < 22 ? 260 + (22 - y) * 18 + 25 * Math.sin(x / 6) : 0;
     const d = Math.hypot(x - 75, y - 20);
     const fan = d < 70 && y >= 20 ? 230 - d * 2.6 : 0;
@@ -15,7 +16,7 @@ const TERRAINS = {
     let hgt = Math.max(mount, fan, plain);
     if (y < 22) hgt -= 90 * Math.exp(-(((x - 75) / 4) ** 2)) * Math.min(1, (22 - y) / 4 + .5);
     return hgt;
-  } },
+  }, rivers: [{ p: [[75, 0], [75, 22]] }, { p: [[75, 22], [74, 40], [76, 60], [75, 88]], dry: true }, { p: [[75, 88], [79, 94], [74, 100]] }, { p: [[40, 79], [36, 90], [38, 100]] }, { p: [[112, 77], [116, 88], [114, 100]] }] },
   volcano: { name: '火山', w: 150, h: 100, cell: 25, desc: '円すい形の成層火山。山頂に火口があり、等高線がほぼ同心円になる。火口の部分は等高線の内側が低い。', f: (x, y) => {
     const d = Math.hypot(x - 75, y - 50);
     let hgt = 120 + 900 * Math.exp(-d / 26);
@@ -26,14 +27,24 @@ const TERRAINS = {
     const rx = 75 + 8 * Math.sin(y / 14), d = Math.abs(x - rx);
     const step = (a, b, h) => h / (1 + Math.exp(-(d - a) / 1.2));
     return 100 + y * 0.6 + step(6, 0, 25) + step(22, 0, 30) + step(42, 0, 35) + (d > 60 ? (d - 60) * 6 : 0);
-  } },
-  coast: { name: '三角州と海岸', w: 150, h: 100, cell: 20, desc: '川が海に出る所に、細かい砂や泥がたまってできた低く平らな三角州。標高が低く、洪水や高潮の被害を受けやすい。', f: (x, y) => {
-    const land = 40 - y * 0.42;
-    const delta = y > 60 ? 6 * Math.exp(-(((x - 75) / 28) ** 2)) : 0;
-    const hill = 150 * Math.exp(-(((x - 20) / 18) ** 2 + ((y - 15) / 18) ** 2));
-    return Math.max(-8, land + delta + hill);
-  } }
+  }, rivers: [{ p: d3.range(0, 101, 4).map(y => [75 + 8 * Math.sin(y / 14), y]) }] },
+  coast: { name: '三角州と海岸', w: 150, h: 100, cell: 20, desc: '川が海に出る所で、川がいくつにも分かれ（分流）、運んだ細かい砂や泥がたまって海に張り出した三角州。標高がほとんど0〜10mで等高線が少なく、洪水や高潮の被害を受けやすい。', f: (x, y) => {
+    const c = DELTA_COAST(x);
+    if (y > c) return Math.max(-20, -1 - (y - c) * 0.6);
+    const hill = 140 * Math.exp(-(((x - 16) / 16) ** 2 + ((y - 12) / 14) ** 2)) + 110 * Math.exp(-(((x - 136) / 15) ** 2 + ((y - 10) / 12) ** 2));
+    return Math.max(1 + (c - y) * 0.12, hill + 6 * Math.sin(x / 5) * Math.cos(y / 6) * Math.min(1, hill / 40));
+  }, rivers: (() => {
+    const bez = (a, c, b) => d3.range(0, 1.001, 0.05).map(t => [(1 - t) ** 2 * a[0] + 2 * (1 - t) * t * c[0] + t * t * b[0], (1 - t) ** 2 * a[1] + 2 * (1 - t) * t * c[1] + t * t * b[1]]);
+    const main = d3.range(0, 41, 2).map(y => [75 + 3 * Math.sin(y / 6), y]), F0 = main[main.length - 1];
+    return [{ p: main }].concat([38, 58, 92, 112].map(x => ({ p: bez(F0, [(F0[0] + x) / 2, (F0[1] + DELTA_COAST(x)) / 2 - 6], [x, DELTA_COAST(x) + 1]) })));
+  })() }
 };
+
+// 地形図の川（水無川は点線）
+function drawRivers(g, T, sx) {
+  (T.rivers || []).forEach(r => g.append('path').attr('d', d3.line().curve(d3.curveCatmullRom)(r.p.map(([x, y]) => [x * sx, y * sx])))
+    .attr('fill', 'none').attr('stroke', '#2f78c4').attr('stroke-width', r.dry ? 1.6 : 2.6).attr('stroke-dasharray', r.dry ? '5 4' : null).attr('stroke-linecap', 'round'));
+}
 
 function makeGrid(T) {
   const { w, h } = T, v = new Float64Array(w * h);
@@ -81,6 +92,7 @@ registerTool('topo', {
       if (S.color) g.append('image').attr('href', reliefCanvas(grid, T.w, T.h, T.cell, { colorAt: k => hypso(grid[k], max) }).toDataURL()).attr('width', Wv).attr('height', Hv).attr('preserveAspectRatio', 'none');
       g.append('g').selectAll('path').data(contours).join('path').attr('d', gp).attr('fill', 'none')
         .attr('stroke', d => d.value <= 0 ? '#2f78c4' : '#8b5a2b').attr('stroke-width', d => d.value % (interval * 5) === 0 ? 1.9 : 0.75);
+      drawRivers(g, T, sx);
       // 計曲線の数字
       contours.filter(c => c.value % (interval * 5) === 0 && c.value > 0).forEach(c => {
         const ring = c.coordinates.flat(1).sort((a, b) => b.length - a.length)[0];

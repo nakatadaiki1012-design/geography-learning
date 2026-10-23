@@ -1,7 +1,7 @@
 /* 画面の切りかえ（見る／動かす／挑戦／授業モード）と、URL の # による直接リンク */
 
 const GROUPS = [
-  { id: 'see', name: '見る', secs: [['globe', '地球儀と図法'], ['climate', '気候'], ['stats', '統計地図（GIS）'], ['landform', '地形と災害']] },
+  { id: 'see', name: '見る', secs: [['globe', '地球儀と図法'], ['climate', '気候'], ['stats', '統計地図（GIS）'], ['landform', '地形と災害'], ['zukan', '地形図鑑']] },
   { id: 'move', name: '動かす', secs: [['time', '時差'], ['topo', '地形図を読む'], ['hazard', '防災シミュレーション'], ['pop', '人口ピラミッド']] },
   { id: 'try', name: '挑戦', secs: [['reading', '資料読み取り'], ['mapquiz', '白地図：国'], ['physmap', '白地図：山・川・砂漠']] },
   { id: 'class', name: '授業モード', secs: [['lessons/sogo', '地理総合'], ['lessons/tankyu', '地理探究']] }

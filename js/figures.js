@@ -247,6 +247,7 @@ const F = {
       const gp = d3.geoPath(d3.geoIdentity().scale(sx));
       svg.append('image').attr('href', reliefCanvas(grid, T.w, T.h, T.cell, { colorAt: k => hypso(grid[k], max) }).toDataURL()).attr('width', W).attr('height', H).attr('preserveAspectRatio', 'none');
       svg.append('g').selectAll('path').data(cs).join('path').attr('d', gp).attr('fill', 'none').attr('stroke', d => d.value <= 0 ? '#2f78c4' : '#8b5a2b').attr('stroke-width', d => d.value % 50 === 0 ? 1.3 : .5);
+      drawRivers(svg, T, sx);
       (o.labels || []).forEach(([x, y, t]) => ftext(svg, x * sx, y * sx, t, { a: 'middle', s: 12, b: true, c: '#7a2a10' }));
       if (o.line) { const [[x1, y1], [x2, y2]] = o.line; svg.append('line').attr('x1', x1 * sx).attr('y1', y1 * sx).attr('x2', x2 * sx).attr('y2', y2 * sx).attr('stroke', 'var(--shu)').attr('stroke-width', 2.5); ftext(svg, x1 * sx, y1 * sx - 4, 'A', { s: 12, b: true, c: 'var(--shu)' }); ftext(svg, x2 * sx, y2 * sx - 4, 'B', { s: 12, b: true, c: 'var(--shu)' }); }
       const node = el('<div></div>'); node.appendChild(svg.node());
@@ -273,9 +274,9 @@ const F = {
       const P = (d, c, s) => svg.append('path').attr('d', d).attr('fill', c).attr('stroke', s || 'none');
       const lab = (x, y, t, o = {}) => ftext(svg, x, y, t, Object.assign({ s: 12, b: true, a: 'middle' }, o));
       const cap = {
-        river: '川の上流から河口までの地形（模式図）', floodplain: '氾濫原の断面（模式図）。自然堤防の上に集落、後背湿地に水田', fan: '扇状地（上から見た模式図）', coast: '沈水海岸（上から見た模式図）',
+        river: '川の上流から河口までの地形（模式図）', floodplain: '氾濫原の断面（模式図）。自然堤防の上に集落、後背湿地に水田', fan: '扇状地（上から見た模式図）', coast: '沈水海岸：陸地が沈んだり海面が上がったりしてできた海岸（上から見た模式図）',
         urban: '都市の内部と人口の動き（模式図）', thunen: 'チューネンの孤立国（模式図）', weber: '工業の立地（模式図）', transition: '人口転換（出生率・死亡率の変化の模式図）', pushpull: '人口移動のしくみ',
-        terrace: '河岸段丘の断面（模式図）', symbols: '主な地図記号', scale: '縮尺の計算（2万5千分の1）', karst: 'カルスト地形（模式図）', glacier: '氷河地形（模式図）', survey: '地域調査の流れ', help: '防災の3つの「助」', territory: '国家の領域と排他的経済水域（模式図・長さは実際の比率ではない）', altitude: 'アンデスの高度による土地利用（模式図）', hazardmap: 'ハザードマップの浸水の深さの目安'
+        terrace: '河岸段丘の断面（模式図）', symbols: '主な地図記号', scale: '縮尺の計算（2万5千分の1）', karst: 'カルスト地形（模式図）', glacier: 'V字谷とU字谷（谷の断面の模式図）', survey: '地域調査の流れ', help: '防災の3つの「助」', territory: '国家の領域と排他的経済水域（模式図・長さは実際の比率ではない）', altitude: 'アンデスの高度による土地利用（模式図）', deltas: '三角州の形：波の強さと、川が運ぶ土砂の量で形が変わる', sandcoast: '砂がつくる海岸の地形（上から見た模式図）', coral: 'さんご礁のでき方（上：上から見た図、下：断面）：島が沈むと①→②→③と変わる', oxbow: '三日月湖のでき方（上から見た模式図）', strata: '地層と地形：かたい地層が残ってできるケスタ・メサ・ビュート（断面の模式図）', hazardmap: 'ハザードマップの浸水の深さの目安'
       }[kind];
       if (kind === 'river') {
         P(`M0,40 L90,60 L150,140 L250,160 L360,175 L420,180 L480,182 L480,${H} L0,${H}Z`, land);
@@ -301,15 +302,23 @@ const F = {
         [[90, 205], [170, 214], [310, 214], [390, 205]].forEach(([x, y]) => svg.append('circle').attr('cx', x).attr('cy', y).attr('r', 6).attr('fill', water));
         lab(240, 60, '扇頂'); lab(240, 125, '扇央（水無川・果樹園や畑）', { s: 12 }); lab(240, 192, '扇端（湧水・集落や水田）', { s: 12 }); lab(240, 26, '山地', { c: '#fff', halo: false });
       } else if (kind === 'coast') {
-        P('M0,0 L230,0 L230,220 L0,220Z', 'var(--sea)'); P('M250,0 L480,0 L480,220 L250,220Z', 'var(--sea)');
-        P('M0,0 L230,0 L230,90 L200,60 L185,95 L160,55 L140,100 L115,60 L95,105 L70,65 L50,110 L25,70 L0,100Z', land);
-        P('M250,0 L480,0 L480,70 L445,70 L440,190 L425,190 L420,70 L380,70 L376,160 L362,160 L358,70 L320,70 L316,140 L302,140 L298,70 L250,70Z', '#b8a77e');
-        lab(115, 150, 'リアス海岸'); lab(115, 168, 'V字谷が沈んだ・入り江が多い', { s: 10, b: false, c: 'var(--muted)' });
-        lab(370, 210, 'フィヨルド'); lab(365, 30, 'U字谷が沈んだ・細長く深い湾', { s: 10, b: false, c: 'var(--muted)' });
+        // 3つの沈水海岸（上から見た図）：リアス海岸・フィヨルド・エスチュアリー
+        const sea = 'var(--sea)', ox = [0, 164, 328];
+        ox.forEach(o => P(`M${o},0 h152 v150 h-152Z`, sea));
+        // リアス海岸：V字谷が沈み、奥ほどせまくなる入り江がのこぎりの歯のように並ぶ
+        let d = `M0,0 H152 V112`;
+        [128, 92, 58, 24].forEach(cx => { d += ` L${cx + 13},112 Q${cx + 5},80 ${cx},${cx % 3 ? 42 : 52} Q${cx - 5},80 ${cx - 13},112`; });
+        P(d + ' L0,112 Z', land);
+        // フィヨルド：U字谷が沈んだ、両岸が平行で細長く奥深い湾（枝分かれもする）
+        P(`M164,0 H316 V140 L292,140 L292,30 Q286,22 280,30 L280,140 L248,140 L248,70 L262,46 L256,40 L240,62 L240,22 Q234,14 228,22 L228,140 L164,140 Z`, '#b8a77e');
+        // エスチュアリー：川の河口がラッパ状に広がった入り江
+        P(`M328,0 H480 V118 L446,118 Q414,96 408,58 L400,58 Q394,96 362,118 L328,118 Z`, land);
+        svg.append('path').attr('d', 'M404,0 Q412,20 402,36 Q396,48 404,60').attr('fill', 'none').attr('stroke', water).attr('stroke-width', 3);
+        [[76, 'リアス海岸', 'V字谷が沈んだ（三陸・志摩）'], [240, 'フィヨルド', 'U字谷が沈んだ（ノルウェー）'], [404, 'エスチュアリー', 'ラッパ状の河口（テムズ川）']].forEach(([x, a, b]) => { lab(x, 172, a); lab(x, 190, b, { s: 10, b: false, c: 'var(--muted)' }); });
       } else if (kind === 'terrace') {
         P(`M0,40 L70,40 L80,90 L150,90 L160,140 L215,140 L225,175 L255,175 L265,140 L320,140 L330,90 L400,90 L410,40 L480,40 L480,${H} L0,${H}Z`, land);
         P('M225,165 L255,165 L255,175 L225,175Z', water);
-        lab(110, 82, '段丘面'); lab(185, 132, '段丘面'); lab(76, 70, '段丘崖', { s: 10, c: 'var(--muted)' }); lab(240, 200, '川');
+        lab(115, 82, '段丘面'); lab(188, 132, '段丘面'); lab(36, 72, '段丘崖', { s: 11 }); svg.append('line').attr('x1', 52).attr('y1', 68).attr('x2', 74).attr('y2', 66).attr('stroke', 'var(--ink)'); lab(240, 200, '川');
         lab(240, 24, '平らな段丘面は洪水を受けにくい。急な段丘崖は森林', { s: 11, b: false, c: 'var(--muted)' });
       } else if (kind === 'urban') {
         [[200, '#f6ead0', '郊外（住宅地・ニュータウン）'], [130, '#f0d8b0', 'インナーシティ（古い市街地）'], [60, '#e6b98a', '都心（CBD）']].forEach(([r, c, n], i) => { svg.append('circle').attr('cx', 170).attr('cy', 110).attr('r', r / 2).attr('fill', c).attr('stroke', '#b8945a'); ftext(svg, 170, 110 - r / 2 + 14 + (i === 2 ? 14 : 0), n, { a: 'middle', s: 10.5, b: true }); });
@@ -382,10 +391,104 @@ const F = {
         lab(80, 70, 'ドリーネ'); lab(220, 70, 'ドリーネ'); lab(360, 190, '鍾乳洞'); lab(400, 60, '石灰岩の台地');
         lab(240, 214, '石灰岩が二酸化炭素をふくむ雨水にとけてできる（秋吉台など）', { s: 11, b: false, c: 'var(--muted)' });
       } else if (kind === 'glacier') {
-        P(`M0,30 L120,30 Q140,180 240,180 Q340,180 360,30 L480,30 L480,${H} L0,${H}Z`, land);
-        P(`M0,30 L120,30 L160,${H} L0,${H}Z`, 'none');
-        lab(240, 160, 'U字谷'); lab(240, 20, '氷河がけずった谷は、底が広いU字形', { s: 11, b: false, c: 'var(--muted)' });
-        lab(60, 120, '（川がけずるとV字谷）', { s: 10, b: false, c: 'var(--muted)' });
+        // V字谷とU字谷をならべてくらべる（谷の断面）
+        P(`M0,40 L80,40 L113,178 L117,178 L150,40 L230,40 L230,${H - 30} L0,${H - 30}Z`, land);
+        P('M111,172 L119,172 L117,178 L113,178Z', water);
+        P(`M250,40 L300,40 Q302,172 365,172 Q428,172 430,40 L480,40 L480,${H - 30} L250,${H - 30}Z`, land);
+        svg.append('path').attr('d', 'M300,40 Q302,172 365,172 Q428,172 430,40').attr('fill', '#e8f2f8').attr('fill-opacity', .7).attr('stroke', '#7fb0d0').attr('stroke-dasharray', '4 3');
+        lab(115, 26, 'V字谷'); lab(365, 26, 'U字谷'); lab(365, 120, 'かつての氷河', { s: 11, b: false, c: '#3f7fa8' });
+        lab(115, 206, '川がけずる：底がせまいV字形', { s: 11, b: false, c: 'var(--muted)' });
+        lab(365, 206, '氷河がけずる：底が広く、壁が急なU字形', { s: 11, b: false, c: 'var(--muted)' });
+      } else if (kind === 'deltas') {
+        // 三角州の形のちがい（上から見た図）
+        const sea = 'var(--sea)';
+        [0, 164, 328].forEach(o => P(`M${o},0 h152 v170 h-152Z`, sea));
+        const riv = d => svg.append('path').attr('d', d).attr('fill', 'none').attr('stroke', water).attr('stroke-width', 2.5);
+        // 円弧状：波と川の力がつり合い、円弧形に張り出す
+        P('M0,0 H152 V58 C150,118 112,148 76,148 C40,148 2,118 0,58 Z', land);
+        riv('M76,0 Q72,30 76,62'); [[22, 108], [46, 136], [76, 148], [106, 136], [130, 108]].forEach(([x, y]) => riv(`M76,62 Q${(76 + x) / 2},${(62 + y) / 2 - 10} ${x},${y}`));
+        // 鳥趾状：波が弱く、川の運ぶ土砂が多いと、鳥の足のように細長くのびる
+        P('M164,0 H316 V58 H164 Z', land);
+        [[200, 150], [244, 166], [286, 140], [222, 130]].forEach(([x, y]) => { const dd = `M240,52 Q${(240 + x) / 2},${(52 + y) / 2 - 6} ${x},${y}`; svg.append('path').attr('d', dd).attr('fill', 'none').attr('stroke', land).attr('stroke-width', 13).attr('stroke-linecap', 'round'); riv(dd); });
+        riv('M240,0 Q236,28 240,54');
+        // カスプ状：波が強く、とがった形になる
+        P('M328,0 H480 V58 Q440,92 404,138 Q368,92 328,58 Z', land);
+        riv('M404,0 Q398,60 404,136');
+        [[76, '円弧状三角州', 'ナイル川'], [240, '鳥趾状三角州', 'ミシシッピ川'], [404, 'カスプ状三角州', 'テヴェレ川']].forEach(([x, a, b]) => { lab(x, 190, a); lab(x, 208, b, { s: 10, b: false, c: 'var(--muted)' }); });
+      } else if (kind === 'sandcoast') {
+        // 砂がつくる海岸の地形（上から見た図）
+        const sea = 'var(--sea)', sand = '#ecd79c';
+        [0, 164, 328].forEach(o => P(`M${o},0 h152 v158 h-152Z`, sea));
+        const bar = (d, w = 9) => svg.append('path').attr('d', d).attr('fill', 'none').attr('stroke', sand).attr('stroke-width', w).attr('stroke-linecap', 'round');
+        // 砂嘴：沿岸流で運ばれた砂が、くちばしのように海へのびる
+        P('M0,0 H40 V158 H0 Z', land);
+        bar('M40,82 Q96,70 124,92 Q134,108 118,116');
+        svg.append('path').attr('d', 'M54,40 L118,40').attr('stroke', 'var(--accent)').attr('stroke-width', 1.5).attr('stroke-dasharray', '4 3').attr('marker-end', arrowDef(svg, 'var(--accent)'));
+        lab(86, 32, '沿岸流', { s: 10, c: 'var(--accent)' }); lab(96, 64, '砂嘴', { s: 12 });
+        // 砂州と潟湖：湾の入り口を砂州がふさぎ、内側が潟湖（ラグーン）になる
+        P('M164,118 Q164,40 240,40 Q316,40 316,118 Z', '#a8d8ea');
+        P('M164,0 H316 V118 L298,118 Q298,52 240,52 Q182,52 182,118 L164,118 Z', land);
+        bar('M182,118 Q240,126 296,118');
+        lab(240, 92, '潟湖（ラグーン）', { s: 11 }); lab(240, 144, '砂州', { s: 12 });
+        // トンボロと陸繋島：島と陸地を砂州がつなぐ
+        P('M328,120 H480 V158 H328 Z', land);
+        svg.append('circle').attr('cx', 404).attr('cy', 46).attr('r', 24).attr('fill', land);
+        bar('M404,68 Q398,96 404,122', 12);
+        lab(444, 30, '陸繋島', { s: 11 }); lab(450, 98, 'トンボロ', { s: 11 });
+        [[76, '砂嘴', '野付半島・三保松原'], [240, '砂州と潟湖', '天橋立・サロマ湖'], [404, 'トンボロと陸繋島', '函館山・江の島']].forEach(([x, a, b]) => { lab(x, 182, a); lab(x, 200, b, { s: 10, b: false, c: 'var(--muted)' }); });
+      } else if (kind === 'coral') {
+        // さんご礁のでき方（上：上から見た図、下：断面）。島が沈むと 裾礁→堡礁→環礁
+        const sea = 'var(--sea)', reef = '#f09a8c', lag = '#a8d8ea', isl = '#8fbf6a';
+        [0, 164, 328].forEach(o => { P(`M${o},0 h152 v112 h-152Z`, sea); P(`M${o},120 h152 v52 h-152Z`, sea); });
+        const C = (cx, r, c) => svg.append('circle').attr('cx', cx).attr('cy', 56).attr('r', r).attr('fill', c);
+        C(76, 44, reef); C(76, 36, isl);
+        C(240, 46, reef); C(240, 39, lag); C(240, 22, isl);
+        C(404, 46, reef); C(404, 39, lag);
+        // 断面（海面は y=136）
+        const seaY = 136;
+        svg.append('path').attr('d', 'M26,172 L76,104 L126,172 Z').attr('fill', isl);
+        P(`M46,${seaY} h10 v36 h-14 Z`, reef); P(`M96,${seaY} h10 l4,36 h-14 Z`, reef);
+        svg.append('path').attr('d', 'M196,172 L240,124 L284,172 Z').attr('fill', isl);
+        P(`M200,${seaY} h9 v36 h-9 Z`, reef); P(`M271,${seaY} h9 v36 h-9 Z`, reef);
+        svg.append('path').attr('d', 'M372,172 L404,150 L436,172 Z').attr('fill', isl);
+        P(`M364,${seaY} h9 v36 h-9 Z`, reef); P(`M435,${seaY} h9 v36 h-9 Z`, reef);
+        [0, 164, 328].forEach(o => svg.append('line').attr('x1', o).attr('x2', o + 152).attr('y1', seaY).attr('y2', seaY).attr('stroke', '#2f6fb0').attr('stroke-dasharray', '3 3'));
+        lab(16, seaY - 4, '海面', { s: 9, a: 'start', c: '#2f6fb0' });
+        [[76, '① 裾礁', '島のまわりをふちどる'], [240, '② 堡礁', '島との間に礁湖'], [404, '③ 環礁', '島が沈み、輪だけ残る']].forEach(([x, a, b]) => { lab(x, 192, a); lab(x, 210, b, { s: 10, b: false, c: 'var(--muted)' }); });
+        [158, 322].forEach(x => lab(x, 60, '→', { s: 16, c: 'var(--shu)' }));
+      } else if (kind === 'oxbow') {
+        // 三日月湖のでき方（上から見た図）
+        [0, 164, 328].forEach(o => P(`M${o},0 h152 v170 h-152Z`, '#d8e6c0'));
+        const riv = (d, o) => svg.append('path').attr('d', d).attr('transform', `translate(${o},0)`).attr('fill', 'none').attr('stroke', '#5ea0d8').attr('stroke-width', 7).attr('stroke-linecap', 'round');
+        riv('M40,0 Q40,60 70,70 C150,55 150,135 75,120 Q45,115 45,170', 0);
+        riv('M40,0 Q40,72 70,86 C152,50 152,152 72,104 Q45,110 45,170', 164);
+        riv('M40,0 Q40,70 62,92 Q46,112 45,170', 328);
+        riv('M84,84 C152,48 152,154 84,106', 328);
+        lab(436, 40, '三日月湖', { s: 11, c: '#2f6fa8' });
+        [[76, '① 川が曲がって流れる（蛇行）'], [240, '② 曲がりの首がせまくなる'], [404, '③ 洪水で近道ができる']].forEach(([x, a]) => lab(x, 192, a, { s: 11 }));
+        lab(240, 210, '取り残された曲がりが三日月湖になる（石狩川の流域など）', { s: 10, b: false, c: 'var(--muted)' });
+      } else if (kind === 'strata') {
+        // 地層と地形：ケスタ（かたむいた地層）、メサ・ビュート（水平な地層）
+        const hard = '#9a5a35', soft = '#e3c79a', id = 'stc' + (++FIG_ID);
+        const cp = svg.append('defs');
+        // ケスタ：かたい地層が、ゆるやかな斜面と急ながけをつくる
+        cp.append('clipPath').attr('id', id + 'a').append('path').attr('d', 'M0,150 L22,150 L36,58 L230,124 L230,180 L0,180 Z');
+        const ga = svg.append('g').attr('clip-path', `url(#${id}a)`);
+        ga.append('rect').attr('x', 0).attr('y', 0).attr('width', 230).attr('height', 180).attr('fill', soft);
+        [[46, 14], [112, 12]].forEach(([c, t]) => ga.append('path').attr('d', `M0,${c} L230,${c + 230 * 0.34} L230,${c + 230 * 0.34 + t} L0,${c + t} Z`).attr('fill', hard));
+        // メサ・ビュート：水平な地層のうち、かたい地層が上に残る
+        cp.append('clipPath').attr('id', id + 'b').append('path').attr('d', 'M250,170 L262,170 L284,92 L290,60 L360,60 L366,92 L392,170 L404,170 L418,92 L422,60 L438,60 L442,92 L462,170 L480,170 L480,180 L250,180 Z');
+        const gb = svg.append('g').attr('clip-path', `url(#${id}b)`);
+        gb.append('rect').attr('x', 250).attr('y', 0).attr('width', 230).attr('height', 180).attr('fill', soft);
+        gb.append('rect').attr('x', 250).attr('y', 58).attr('width', 230).attr('height', 16).attr('fill', hard);
+        gb.append('rect').attr('x', 250).attr('y', 120).attr('width', 230).attr('height', 10).attr('fill', '#cfa775');
+        lab(36, 46, 'ケスタ', { a: 'start' }); lab(34, 128, '急ながけ', { s: 10, a: 'start', c: 'var(--ink)' });
+        lab(150, 82, 'ゆるやかな斜面', { s: 10, c: 'var(--muted)' });
+        lab(325, 50, 'メサ'); lab(430, 50, 'ビュート');
+        lab(115, 196, 'かたむいた地層（パリ盆地のまわり）', { s: 10, b: false, c: 'var(--muted)' });
+        lab(365, 196, '水平な地層（アメリカ西部）', { s: 10, b: false, c: 'var(--muted)' });
+        svg.append('rect').attr('x', 118).attr('y', 204).attr('width', 12).attr('height', 9).attr('fill', hard); lab(134, 212, 'かたい地層（けずられにくい）', { s: 10, a: 'start' });
+        svg.append('rect').attr('x', 300).attr('y', 204).attr('width', 12).attr('height', 9).attr('fill', soft).attr('stroke', '#b89a6a'); lab(316, 212, 'やわらかい地層', { s: 10, a: 'start' });
       } else if (kind === 'survey' || kind === 'help') {
         const items = kind === 'survey'
           ? [['① 課題を見つける', '身近な地域の「なぜ？」'], ['② 仮説を立てる', '「〜だからではないか」'], ['③ 調べる', '地形図・統計・GIS、聞き取り・観察'], ['④ まとめる', '主題図・グラフで仮説を確かめる'], ['⑤ 発表・提案する', '解決策を考えて発信する']]

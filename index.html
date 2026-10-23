@@ -448,6 +448,12 @@ button.tag.v { border-color: transparent; }
 .tnote { margin-top: 10px; }
 .certtbl th { white-space: nowrap; }
 .printonly { display: none; }
+/* 地形図鑑 */
+.zk .svgwrap { overflow: auto; display: flex; align-items: center; justify-content: center; padding: 6px; }
+.zk .svgwrap > .fig, .zk .svgwrap > .fig2 { width: 100%; max-width: 900px; margin: auto; }
+.zk .svgwrap .fig svg { height: auto !important; max-height: calc(100dvh - var(--top-h) - 150px); }
+.zk .chips { display: flex; flex-wrap: wrap; gap: 4px; }
+@media (max-width: 900px) { .tool.zk { grid-template-rows: auto minmax(0, 1fr); } .zk .svgwrap .fig svg { max-height: 40dvh; } }
 /* 自然の白地図 */
 .pm .chips { display: flex; flex-wrap: wrap; gap: 4px; }
 .pm .chip.on { background: var(--ink); color: var(--panel); border-color: var(--ink); }
@@ -522,6 +528,7 @@ button.tag.v { border-color: transparent; }
 <script src="js/figures.js"></script>
 <script src="js/fig-interact.js"></script>
 <script src="js/relief.js"></script>
+<script src="js/tool-zukan.js"></script>
 <script src="js/challenge.js"></script>
 <script src="js/lesson-figs.js"></script>
 <script src="js/lessons.js"></script>
