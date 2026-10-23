@@ -201,6 +201,26 @@ details.more summary { cursor: pointer; color: var(--accent); font-weight: 700; 
 .dots i { width: 9px; height: 9px; border-radius: 50%; background: var(--line); }
 .dots i.on { background: var(--shu); }
 .embed .tool { height: min(78vh, 760px); }
+/* 提出・学習の記録 */
+.conds { list-style: none; padding: 0; margin: 6px 0 0; }
+.conds li { display: flex; align-items: center; gap: 8px; padding: 4px 0; border-bottom: 1px dashed var(--line); font-size: 14px; }
+.conds li > span { width: 22px; height: 22px; border-radius: 50%; display: inline-grid; place-items: center; background: var(--chip); color: var(--muted); font-weight: 800; flex: none; }
+.conds li.ok > span { background: var(--ok); color: #fff; }
+.conds .go { margin-left: auto; }
+.kterms .chips { margin: 6px 0 2px; }
+.kterms .tag { font-size: 12px; padding: 1px 8px; }
+.linkbox input { font-family: var(--font-data); }
+.batch summary { cursor: pointer; }
+.certhead { display: flex; gap: 12px; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; }
+.certhead h2 { margin: 2px 0 0; }
+.certhead h2 small { font-size: 14px; color: var(--muted); font-family: var(--font-body); }
+.vbox { border: 2px solid var(--ok); color: var(--ok); border-radius: 10px; padding: 6px 12px; font-weight: 700; font-size: 13px; text-align: center; }
+.vbox.ng { border-color: var(--shu); color: var(--shu); }
+.certgrid { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 0 12px; }
+.certgrid .span2 { grid-column: 1 / -1; }
+.answer { white-space: normal; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; margin-top: 4px; font-size: 15px; line-height: 1.8; }
+.certtbl td { vertical-align: top; }
+@media print { .top, .lfoot, .pr { display: none !important; } body { background: #fff; } }
 /* 下のバー（左＝もどる、まん中＝進みぐあい、右＝次へ）。いつも同じ場所に出す */
 .lfoot { display: flex; align-items: center; gap: 10px; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--line); background: var(--panel); }
 .lfoot .fl, .lfoot .fr { flex: 0 0 auto; min-width: 10em; display: flex; }
@@ -261,7 +281,7 @@ details.more summary { cursor: pointer; color: var(--accent); font-weight: 700; 
   .lesson[data-tab] .ltitle { display: inline; font-family: var(--font-display); font-size: 20px; color: var(--ink); margin-left: 12px; }
   .lesson[data-tab] .lesson-q { margin: 6px 0 2px; padding: 6px 12px; font-size: 15px; }
   .lesson[data-tab] .tabs { margin: 2px 0 8px; }
-  .lesson[data-tab] .tabs button { padding: 6px 14px; }
+  .lesson[data-tab] .tabs button { padding: 6px 12px; }
   .lesson[data-tab] .tabbody { flex: 1; min-height: 0; display: flex; flex-direction: column; overflow-y: auto; }
   .lesson[data-tab="slides"] .tabbody { overflow: hidden; }
   .lesson[data-tab] .slide { flex: 1; min-height: 0; font-size: clamp(15px, 2.3vh, 18px); line-height: 1.75; }
@@ -390,6 +410,9 @@ details.more summary { cursor: pointer; color: var(--accent); font-weight: 700; 
   .embed .tool { height: var(--embed-h, calc(100dvh - var(--top-h) - 14px)); min-height: 440px; }
   .lesson[data-tab="tool"] .lesson-q, .lesson[data-tab="test"] .lesson-q, .lesson[data-tab="tool"] .toolhint { display: none; }
   .lgrid { grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 6px; }
+  .certgrid { grid-template-columns: 1fr; }
+  .linkbox .row { flex-wrap: wrap !important; }
+  .conds li { font-size: 13px; }
   .lpart { margin-top: 8px; border-bottom: 1px solid var(--line); padding-bottom: 8px; }
   .lpart h3 { font-size: 15px; }
   .mlead { display: none; }
@@ -439,6 +462,7 @@ details.more summary { cursor: pointer; color: var(--accent); font-weight: 700; 
 <script src="js/lesson-figs.js"></script>
 <script src="js/lessons.js"></script>
 <script src="js/lessons-tankyu.js"></script>
+<script src="js/submit.js"></script>
 <script src="js/lesson-view.js"></script>
 <script src="js/main.js"></script>
 </body>

@@ -45,6 +45,7 @@ registerTool('lessons', {
         });
         mb.appendChild(det);
       });
+      batchSubmit($('.lesson', root), course);
       const cb = $('.cont', root); if (cb) cb.addEventListener('click', () => go(next.id));
     }
 
@@ -61,7 +62,7 @@ registerTool('lessons', {
         <div class="lesson-head" style="margin-top:6px"><div><h2>${l.title}</h2></div></div>
         <div class="lesson-q"><b>問い</b>　${l.q}</div>
         <div class="tabs" role="tablist">
-          <button type="button" data-t="slides">① 説明</button><button type="button" data-t="tool">② 資料で考える</button><button type="button" data-t="think">③ 考えよう</button><button type="button" data-t="test">④ 確認テスト${passed()[l.id] ? ' 🏅' : ''}</button></div>
+          <button type="button" data-t="slides">① 説明</button><button type="button" data-t="tool">② 資料で考える</button><button type="button" data-t="think">③ 考えよう</button><button type="button" data-t="test">④ 確認テスト${passed()[l.id] ? ' 🏅' : ''}</button><button type="button" data-t="submit">⑤ 提出</button></div>
         <div class="tabbody"></div></div>`;
       $('.back', root).addEventListener('click', () => { location.hash = `#lessons/${course.id}`; });
       if (prev) $('.pv', root).addEventListener('click', () => go(prev.id));
@@ -69,7 +70,7 @@ registerTool('lessons', {
       $$('.tabs button', root).forEach(b => b.addEventListener('click', () => show(b.dataset.t)));
       const body = $('.tabbody', root);
       const foot = makeFoot(); $('.lesson', root).appendChild(foot);
-      const TABS = ['slides', 'tool', 'think', 'test'], TNAME = { slides: '① 説明', tool: '② 資料で考える', think: '③ 考えよう', test: '④ 確認テスト' };
+      const TABS = ['slides', 'tool', 'think', 'test', 'submit'], TNAME = { slides: '① 説明', tool: '② 資料で考える', think: '③ 考えよう', test: '④ 確認テスト', submit: '⑤ 提出' };
       let si = 0;
       function show(t) {
         cleanup && cleanup(); cleanup = null;
@@ -79,7 +80,7 @@ registerTool('lessons', {
         body.scrollTop = 0;
         const i = TABS.indexOf(t);
         // 説明とテスト以外は「前のタブ／次のタブ」
-        if (t !== 'slides' && t !== 'test') foot.set({ left: { label: `← ${TNAME[TABS[i - 1]]}`, fn: () => show(TABS[i - 1]) }, center: dotsHtml(4, i), right: { label: `${TNAME[TABS[i + 1]]} →`, fn: () => show(TABS[i + 1]) } });
+        if (t !== 'slides' && t !== 'test') foot.set({ left: { label: `← ${TNAME[TABS[i - 1]]}`, fn: () => show(TABS[i - 1]) }, center: dotsHtml(5, i), right: t === 'submit' ? (next ? { label: '次の授業 →', fn: () => go(next.id) } : { label: '授業の一覧 →', fn: () => { location.hash = `#lessons/${course.id}`; } }) : { label: `${TNAME[TABS[i + 1]]} →`, fn: () => show(TABS[i + 1]) } });
         if (t === 'slides') slides();
         if (t === 'tool') {
           body.appendChild(el(`<p class="small muted toolhint" style="margin:0 0 8px">${l.tool.label}：地図やグラフを動かして、「問い」の答えの手がかりをさがそう。</p>`));
@@ -90,8 +91,22 @@ registerTool('lessons', {
         }
         if (t === 'think') {
           body.appendChild(el(`<div class="card"><b>使う「地理的な見方・考え方」</b><div class="views">${(l.think.views || []).map(k => `<span class="tag v">${VIEWS[k]}</span><span class="small muted" style="margin-right:10px">${VIEW_DESC[k]}</span>`).join('')}</div></div>`));
-          body.appendChild(thinkCard(Object.assign({ id: 'lesson-' + l.id }, l.think)));
+          // 知識（説明で学んだ用語）を活かして書く
+          const terms = lessonTerms(l);
+          const kc = el(`<div class="card kterms"><b>知識を活かそう</b>　<span class="small muted">①説明で学んだ用語を使って書くと、根拠のある説明になる（2つ以上使うのがクリア条件）</span><div class="chips"></div><div class="small kcount"></div></div>`);
+          body.appendChild(kc);
+          const tc = thinkCard(Object.assign({ id: 'lesson-' + l.id }, l.think));
+          body.appendChild(tc);
+          const ta = $('textarea', tc);
+          const upd = () => {
+            const used = terms.filter(x => termUsed(x, ta.value));
+            $('.chips', kc).innerHTML = terms.map(x => `<span class="tag ${used.includes(x) ? 'v' : ''}">${used.includes(x) ? '✓ ' : ''}${x}</span>`).join('');
+            const n = ta.value.replace(/\s/g, '').length;
+            $('.kcount', kc).innerHTML = `使った用語 <b>${used.length}</b>つ・${n}字　${used.length >= CLEAR.terms && n >= CLEAR.len ? '<b style="color:var(--ok)">✓ 記述のクリア条件OK</b>' : `<span class="muted">（クリア条件：用語${CLEAR.terms}つ以上・${CLEAR.len}字以上）</span>`}`;
+          };
+          ta.addEventListener('input', upd); upd();
         }
+        if (t === 'submit') submitPane(body, course, l, show);
         if (t === 'test') test();
       }
       function dotsHtml(n, on) { return `<span class="dots">${Array.from({ length: n }, (x, i) => `<i class="${i === on ? 'on' : ''}"></i>`).join('')}</span>`; }
@@ -115,9 +130,10 @@ registerTool('lessons', {
           if (k >= qs.length) {
             const ok = score >= 3;
             if (ok) { const P = passed(); P[l.id] = true; store.set('passed', P); $('.tabs button[data-t="test"]', root).textContent = '④ 確認テスト 🏅'; }
+            const SC = store.get('scores', {}); if (!SC[l.id] || SC[l.id].s < score) { SC[l.id] = { s: score, t: Date.now() }; store.set('scores', SC); }
             body.appendChild(el(`<div class="card ${ok ? 'ok' : 'ng'}" style="text-align:center;padding:16px"><div style="font-size:22px;font-family:var(--font-display);font-weight:800">${score} / ${qs.length} 問 正解</div>
               ${ok ? '<div style="margin:10px 0"><span class="hanko">合格</span></div>' : '<p>3問以上で合格。説明をもう一度読んでから挑戦しよう。</p>'}</div>`));
-            foot.set({ left: { label: '↺ もう一度', fn: test }, center: `<span class="small muted">結果</span>`, right: next ? { label: '次の授業 →', fn: () => go(next.id) } : { label: '授業の一覧 →', fn: () => { location.hash = `#lessons/${course.id}`; } } });
+            foot.set({ left: { label: '↺ もう一度', fn: test }, center: `<span class="small muted">結果</span>`, right: { label: '⑤ 提出 →', fn: () => show('submit') } });
             return;
           }
           const [q, choices, a, exp] = qs[k];

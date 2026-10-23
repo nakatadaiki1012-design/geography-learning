@@ -12,8 +12,8 @@ function route() {
   const h = decodeURIComponent(location.hash.replace(/^#/, '')) || 'lessons/sogo';
   const parts = h.split('/');
   const id = TOOLS[parts[0]] ? parts[0] : 'globe';
-  const params = id === 'lessons' ? { course: parts[1] || 'sogo', lesson: parts[2], tab: parts[3] } : {};
-  const secKey = id === 'lessons' ? `lessons/${params.course}` : id;
+  const params = id === 'lessons' ? { course: parts[1] || 'sogo', lesson: parts[2], tab: parts[3] } : id === 'cert' ? { data: parts.slice(1).join('/') } : {};
+  const secKey = id === 'lessons' ? `lessons/${params.course}` : id === 'cert' ? 'lessons/sogo' : id;
   const grp = GROUPS.find(g => g.secs.some(s => s[0] === secKey)) || GROUPS[0];
   // 上のバー
   $('#grpnav').innerHTML = '';

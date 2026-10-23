@@ -212,11 +212,16 @@ function thinkCard({ id, q, hint, answer, views, points }) {
     msg.textContent = `${ta.value.length}字・自動で保存`;
   });
   $('button', card).addEventListener('click', () => {
-    const checks = (points || ['資料（地図・グラフ・統計）から読み取ったことを根拠にした', '「なぜそうなるのか」を自然環境や人の活動と結びつけた', '結論をはっきり書いた']);
+    const checks = (points || ['資料（地図・グラフ・統計）から読み取ったことを根拠にした', '説明で学んだ知識（用語）を使って「なぜそうなるのか」を説明した', '結論をはっきり書いた']);
+    const done = store.get('checks', {})[id] || [];
     ans.innerHTML = `<div class="card ok" style="background:var(--panel)"><b>解答例</b><p style="margin:4px 0">${answer}</p></div>
       <p class="small" style="margin:6px 0 2px"><b>ふりかえり</b>（自分の答えにあてはまるものをチェック）</p>
-      ${checks.map((c, i) => `<label class="small" style="display:block"><input type="checkbox" data-i="${i}"> ${c}</label>`).join('')}`;
+      ${checks.map((c, i) => `<label class="small" style="display:block"><input type="checkbox" data-i="${i}" ${done[i] ? 'checked' : ''}> ${c}</label>`).join('')}`;
     ans.hidden = false;
+    $$('input[type=checkbox]', ans).forEach(cb => cb.addEventListener('change', () => {
+      const all = store.get('checks', {}); const arr = all[id] || []; arr[+cb.dataset.i] = cb.checked; all[id] = arr; store.set('checks', all);
+      card.dispatchEvent(new Event('checks'));
+    }));
   });
   return card;
 }
