@@ -245,7 +245,7 @@ const F = {
       const max = d3.max(grid), iv = 10;
       const cs = d3.contours().size([T.w, T.h]).thresholds(d3.range(Math.floor(d3.min(grid) / iv) * iv, max + iv, iv))(Array.from(grid));
       const gp = d3.geoPath(d3.geoIdentity().scale(sx));
-      svg.append('g').selectAll('path').data(cs).join('path').attr('d', gp).attr('fill', d => hypso(d.value, max));
+      svg.append('image').attr('href', reliefCanvas(grid, T.w, T.h, T.cell, { colorAt: k => hypso(grid[k], max) }).toDataURL()).attr('width', W).attr('height', H).attr('preserveAspectRatio', 'none');
       svg.append('g').selectAll('path').data(cs).join('path').attr('d', gp).attr('fill', 'none').attr('stroke', d => d.value <= 0 ? '#2f78c4' : '#8b5a2b').attr('stroke-width', d => d.value % 50 === 0 ? 1.3 : .5);
       (o.labels || []).forEach(([x, y, t]) => ftext(svg, x * sx, y * sx, t, { a: 'middle', s: 12, b: true, c: '#7a2a10' }));
       if (o.line) { const [[x1, y1], [x2, y2]] = o.line; svg.append('line').attr('x1', x1 * sx).attr('y1', y1 * sx).attr('x2', x2 * sx).attr('y2', y2 * sx).attr('stroke', 'var(--shu)').attr('stroke-width', 2.5); ftext(svg, x1 * sx, y1 * sx - 4, 'A', { s: 12, b: true, c: 'var(--shu)' }); ftext(svg, x2 * sx, y2 * sx - 4, 'B', { s: 12, b: true, c: 'var(--shu)' }); }
@@ -263,6 +263,8 @@ const F = {
     };
   },
   // 地形の模式図（横から見た図）
+  // 2つの図を並べる（例：リアス海岸とフィヨルド）
+  pair(a, b) { return () => { const d = el('<div class="fig2"></div>'); d.appendChild(a()); d.appendChild(b()); return d; }; },
   scheme(kind) {
     return () => {
       const W = 480, H = 220, svg = fsvg(W, H);
@@ -408,10 +410,11 @@ const F = {
     return () => {
       const { w, h, kind } = TOWN, cv = document.createElement('canvas'); cv.width = w; cv.height = h;
       const ctx = cv.getContext('2d'), im = ctx.createImageData(w, h);
-      for (let k = 0; k < w * h; k++) { const c = d3.rgb(KIND[kind[k]].c); im.data.set([c.r, c.g, c.b, 255], k * 4); }
+      const shd = shadeOf(TOWN.v, w, h, TOWN.cell, 3);
+      for (let k = 0; k < w * h; k++) { const c = [4, 5].includes(kind[k]) ? d3.rgb(KIND[kind[k]].c) : mix(KIND[kind[k]].c, 0.62 + 0.5 * shd[k]); im.data.set([Math.min(255, c.r), Math.min(255, c.g), Math.min(255, c.b), 255], k * 4); }
       ctx.putImageData(im, 0, 0);
       const svg = fsvg(w * 3, h * 3);
-      svg.append('image').attr('href', cv.toDataURL()).attr('width', w * 3).attr('height', h * 3).style('image-rendering', 'pixelated');
+      svg.append('image').attr('href', cv.toDataURL()).attr('width', w * 3).attr('height', h * 3).attr('preserveAspectRatio', 'none');
       const names = [[20, 12, '山地'], [55, 33, '扇状地'], [135, 60, '台地'], [30, 60, '後背湿地'], [52, 50, '旧河道'], [85, 104, '海']];
       names.forEach(([x, y, t]) => ftext(svg, x * 3, y * 3, t, { a: 'middle', s: 13, b: true }));
       return figWrap(svg.node(), o.cap || '架空の町の地形分類図', KIND.filter((k, i) => ![4, 5].includes(i)).map(k => [k.c, k.n]));

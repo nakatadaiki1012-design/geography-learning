@@ -78,7 +78,7 @@ registerTool('topo', {
       const gp = d3.geoPath(d3.geoIdentity().scale(sx));
       const g = svgNode.append('g');
       g.append('rect').attr('width', Wv).attr('height', Hv).attr('fill', S.color ? '#cfe3b4' : '#fffdf7');
-      if (S.color) g.append('g').selectAll('path').data(contours).join('path').attr('d', gp).attr('fill', d => hypso(d.value, max));
+      if (S.color) g.append('image').attr('href', reliefCanvas(grid, T.w, T.h, T.cell, { colorAt: k => hypso(grid[k], max) }).toDataURL()).attr('width', Wv).attr('height', Hv).attr('preserveAspectRatio', 'none');
       g.append('g').selectAll('path').data(contours).join('path').attr('d', gp).attr('fill', 'none')
         .attr('stroke', d => d.value <= 0 ? '#2f78c4' : '#8b5a2b').attr('stroke-width', d => d.value % (interval * 5) === 0 ? 1.9 : 0.75);
       // 計曲線の数字
@@ -311,6 +311,7 @@ registerTool('hazard', {
       return { pts, wet, len };
     }
 
+    const TSH = shadeOf(v, w, h, TOWN.cell, 3);
     const HCOL = d3.interpolateRgbBasis(['#9ccf8a', '#e8e0a6', '#dcb57a', '#b07e55', '#8a6243']);
     function draw() {
       svg.selectAll('*').remove();
@@ -325,11 +326,11 @@ registerTool('hazard', {
         else c = kind[k] === 5 ? '#a9d0ea' : kind[k] === 4 ? '#7db6e3' : '#f6f2e6';
         if (S.hz !== 'landslide' && depth[k] > 0.05) c = DEPTH.find(x => depth[k] < x.d).c;
         if (S.hz === 'landslide' && slopeRisk[k]) c = slopeRisk[k] === 2 ? '#e8735c' : '#f6c26b';
-        const rgb = d3.rgb(c);
-        im.data[k * 4] = rgb.r; im.data[k * 4 + 1] = rgb.g; im.data[k * 4 + 2] = rgb.b; im.data[k * 4 + 3] = 255;
+        const rgb = (kind[k] === 4 || kind[k] === 5 || S.layer === 'plain') ? d3.rgb(c) : mix(c, 0.66 + 0.45 * TSH[k]);
+        im.data[k * 4] = Math.min(255, rgb.r); im.data[k * 4 + 1] = Math.min(255, rgb.g); im.data[k * 4 + 2] = Math.min(255, rgb.b); im.data[k * 4 + 3] = 255;
       }
       ctx.putImageData(im, 0, 0);
-      svg.append('image').attr('href', cv.toDataURL()).attr('width', Wv).attr('height', Hv).attr('preserveAspectRatio', 'none').style('image-rendering', 'pixelated');
+      svg.append('image').attr('href', cv.toDataURL()).attr('width', Wv).attr('height', Hv).attr('preserveAspectRatio', 'none');
       // 等高線（うすく）
       const cts = d3.contours().size([w, h]).thresholds([5, 10, 20, 50, 100, 150, 200])(Array.from(v));
       svg.append('g').selectAll('path').data(cts).join('path').attr('d', d3.geoPath(d3.geoIdentity().scale(sx))).attr('fill', 'none').attr('stroke', 'rgba(110,70,30,.45)').attr('stroke-width', .8);
