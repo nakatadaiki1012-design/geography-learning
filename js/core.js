@@ -223,7 +223,7 @@ function thinkCard({ id, q, hint, answer, views, points }) {
 }
 
 // 選択問題（1問）。onDone(正解か)
-function choiceQuestion(container, { q, choices, a, exp, figure, plain }, onDone) {
+function choiceQuestion(container, { q, choices, a, exp, figure, plain, expFig }, onDone) {
   const box = el(`<div><div class="qtext" style="font-size:16px;margin:4px 0 6px">${q}</div><div class="fig"></div><div class="choices"></div><div class="exp"></div></div>`);
   if (figure) $('.fig', box).appendChild(figure);
   const cb = $('.choices', box);
@@ -235,6 +235,9 @@ function choiceQuestion(container, { q, choices, a, exp, figure, plain }, onDone
       const ok = i === a;
       if (!ok) b.classList.add('is-wrong');
       $('.exp', box).innerHTML = `<div class="card ${ok ? 'ok' : 'ng'}"><b>${ok ? '正解！' : `ざんねん… 正解は ${plain ? choices[a] : 'アイウエオカ'[a]}`}</b>${exp ? `<p style="margin:4px 0 0">${exp}</p>` : ''}</div>`;
+      // 解説の図（地図・グラフ）
+      const ef = expFig && typeof fig === 'function' ? fig(expFig) : null;
+      if (ef) $('.exp .card', box).appendChild(ef);
       onDone && onDone(ok);
     });
     cb.appendChild(b);

@@ -73,6 +73,75 @@ const JP = {
 
 const BOUND_STYLE = { div: { c: '#e3a63a', n: '広がる境界' }, con: { c: '#d9473b', n: '狭まる境界' }, tra: { c: '#3f7fc0', n: 'ずれる境界' }, other: { c: '#8a5bd0', n: 'プレートの境界（はっきりしない所もある）' } };
 
+// --- プレート境界の動き（模式図アニメーション） ---
+function plateAnim(kind) {
+  let raf = 0;
+  const box = el('<div class="card" style="background:var(--panel)"></div>');
+  const W2 = 340, H2 = 170;
+  const s = d3.select(box).append('svg').attr('viewBox', `0 0 ${W2} ${H2}`).style('width', '100%');
+  const cap = el('<p class="small" style="margin:4px 0 0"></p>'); box.appendChild(cap);
+  const sea = 'var(--sea2)';
+  let t0 = performance.now();
+  let started = false;
+  const frame = now => {
+    if (started && !box.isConnected) return; // 画面から消えたら止める
+    started = true;
+    const t = ((now - t0) / 4000) % 1;
+    s.selectAll('*').remove();
+    if (kind === 'diverge') {
+      s.append('rect').attr('width', W2).attr('height', 60).attr('fill', sea);
+      const gap = 6 + t * 40;
+      s.append('rect').attr('x', 0).attr('y', 60).attr('width', W2 / 2 - gap / 2).attr('height', 40).attr('fill', '#8c7a5b');
+      s.append('rect').attr('x', W2 / 2 + gap / 2).attr('y', 60).attr('width', W2 / 2).attr('height', 40).attr('fill', '#8c7a5b');
+      s.append('rect').attr('x', W2 / 2 - gap / 2).attr('y', 54).attr('width', gap).attr('height', 46).attr('fill', '#e0533d');
+      s.append('path').attr('d', `M${W2 / 2},${H2} L${W2 / 2},100`).attr('stroke', '#e0533d').attr('stroke-width', 14);
+      s.append('rect').attr('y', 100).attr('width', W2).attr('height', 70).attr('fill', 'rgba(224,83,61,.25)');
+      s.append('text').attr('x', 40).attr('y', 85).attr('fill', '#fff').attr('font-size', 12).text('← プレート');
+      s.append('text').attr('x', W2 - 110).attr('y', 85).attr('fill', '#fff').attr('font-size', 12).text('プレート →');
+      s.append('text').attr('x', W2 / 2).attr('y', 45).attr('text-anchor', 'middle').attr('font-size', 12).attr('fill', 'var(--ink)').text('海嶺：マグマが上がり新しい海底ができる');
+      cap.innerHTML = '<b>広がる境界</b>：プレートが両側に離れていく。海底では<b>海嶺</b>（大西洋中央海嶺など）、陸上では<b>地溝帯</b>（アフリカ大地溝帯）ができる。アイスランドは海嶺が陸上に出た島。';
+    } else if (kind === 'subduct') {
+      s.append('rect').attr('width', W2).attr('height', 70).attr('fill', sea);
+      const off = t * 60;
+      s.append('path').attr('d', 'M0,70 L170,70 L330,170 L280,170 L150,90 L0,90Z').attr('fill', '#5d6a7a');
+      for (let i = 0; i < 4; i++) { const x = ((i * 50 + off) % 200); s.append('text').attr('x', x).attr('y', 84).attr('font-size', 11).attr('fill', '#fff').text('→'); }
+      s.append('path').attr('d', `M180,70 L340,70 L340,170 L330,170 L180,75Z`).attr('fill', '#8c7a5b');
+      s.append('path').attr('d', `M235,70 L255,${48 - 6 * Math.sin(t * Math.PI)} L275,70Z`).attr('fill', '#8c7a5b');
+      s.append('circle').attr('cx', 255).attr('cy', 120).attr('r', 9 + 2 * Math.sin(t * 6.28)).attr('fill', '#e0533d');
+      s.append('path').attr('d', 'M255,111 L255,60').attr('stroke', '#e0533d').attr('stroke-width', 3).attr('stroke-dasharray', '3 3');
+      const star = (x, y) => s.append('text').attr('x', x).attr('y', y).attr('font-size', 16).attr('fill', '#ffd34d').text('✦');
+      if (t > 0.6) star(195, 92); if (t > 0.8) star(230, 112);
+      s.append('text').attr('x', 160).attr('y', 64).attr('font-size', 11).attr('fill', 'var(--ink)').text('海溝');
+      s.append('text').attr('x', 10).attr('y', 20).attr('font-size', 12).attr('fill', 'var(--ink)').text('海のプレート（重い）');
+      s.append('text').attr('x', 230).attr('y', 30).attr('font-size', 12).attr('fill', 'var(--ink)').text('火山');
+      s.append('text').attr('x', 270).attr('y', 100).attr('font-size', 11).attr('fill', '#fff').text('陸のプレート');
+      cap.innerHTML = '<b>狭まる境界（沈みこみ）</b>：重い海のプレートが陸のプレートの下に沈みこむ。<b>海溝</b>ができ、ひずみがたまって<b>海溝型地震・津波</b>が起こる。沈みこんだ所の上ではマグマができて<b>火山</b>が並ぶ（日本列島・アンデス山脈）。';
+    } else if (kind === 'collide') {
+      const p = Math.min(t * 1.2, 1);
+      s.append('rect').attr('x', 0).attr('y', 90).attr('width', 160 + p * 8).attr('height', 50).attr('fill', '#8c7a5b');
+      s.append('rect').attr('x', 180 - p * 8).attr('y', 90).attr('width', 170).attr('height', 50).attr('fill', '#9c8a6b');
+      s.append('path').attr('d', `M110,90 L170,${90 - 70 * p} L230,90Z`).attr('fill', '#7a6a4b');
+      s.append('path').attr('d', `M150,${90 - 50 * p} L170,${90 - 70 * p} L190,${90 - 50 * p}Z`).attr('fill', '#fff');
+      s.append('text').attr('x', 20).attr('y', 120).attr('fill', '#fff').attr('font-size', 12).text('インド → ');
+      s.append('text').attr('x', 240).attr('y', 120).attr('fill', '#fff').attr('font-size', 12).text('← ユーラシア');
+      cap.innerHTML = '<b>狭まる境界（衝突）</b>：大陸のプレートどうしがぶつかると、どちらも沈みこみにくいので押し上げられ、<b>高く険しい山脈</b>ができる（ヒマラヤ山脈・アルプス山脈）。今も少しずつ高くなっている。';
+    } else {
+      const d = (t < .5 ? t : 1 - t) * 60;
+      s.append('rect').attr('width', W2).attr('height', H2).attr('fill', '#b9c79a');
+      s.append('line').attr('x1', W2 / 2).attr('x2', W2 / 2).attr('y1', 0).attr('y2', H2).attr('stroke', '#7a5a2a').attr('stroke-width', 3).attr('stroke-dasharray', '8 4');
+      s.append('path').attr('d', `M20,${85 - d} L${W2 / 2},${85 - d}`).attr('stroke', '#5d4a2a').attr('stroke-width', 5);
+      s.append('path').attr('d', `M${W2 / 2},${85 + d} L${W2 - 20},${85 + d}`).attr('stroke', '#5d4a2a').attr('stroke-width', 5);
+      s.append('text').attr('x', 60).attr('y', 30).attr('font-size', 13).attr('fill', '#333').text('↑ プレート');
+      s.append('text').attr('x', W2 / 2 + 40).attr('y', H2 - 20).attr('font-size', 13).attr('fill', '#333').text('プレート ↓');
+      s.append('text').attr('x', 30).attr('y', 75 - d).attr('font-size', 11).attr('fill', '#333').text('道路・川');
+      cap.innerHTML = '<b>ずれる境界</b>（上から見た図）：プレートどうしが横にすれちがう。道路や川が断層をはさんでずれる。アメリカの<b>サンアンドレアス断層</b>が有名。';
+    }
+    raf = requestAnimationFrame(frame);
+  };
+  raf = requestAnimationFrame(frame);
+  return box;
+}
+
 registerTool('landform', {
   name: '地形と災害',
   render(container, params = {}) {
@@ -151,73 +220,6 @@ registerTool('landform', {
         : '<div class="legend"><span><i style="background:#d9473b"></i>海溝・トラフ（沈みこみ）</span><span><i style="background:#8a5bd0"></i>その他の境界</span><span>▲火山 ◎大地震</span></div>';
     }
 
-    // --- プレート境界の動き（模式図アニメーション） ---
-    let raf = 0;
-    function animBox(kind) {
-      const box = el('<div class="card" style="background:var(--panel)"></div>');
-      const W2 = 340, H2 = 170;
-      const s = d3.select(box).append('svg').attr('viewBox', `0 0 ${W2} ${H2}`).style('width', '100%');
-      const cap = el('<p class="small" style="margin:4px 0 0"></p>'); box.appendChild(cap);
-      const sea = 'var(--sea2)';
-      cancelAnimationFrame(raf);
-      let t0 = performance.now();
-      const frame = now => {
-        const t = ((now - t0) / 4000) % 1;
-        s.selectAll('*').remove();
-        if (kind === 'diverge') {
-          s.append('rect').attr('width', W2).attr('height', 60).attr('fill', sea);
-          const gap = 6 + t * 40;
-          s.append('rect').attr('x', 0).attr('y', 60).attr('width', W2 / 2 - gap / 2).attr('height', 40).attr('fill', '#8c7a5b');
-          s.append('rect').attr('x', W2 / 2 + gap / 2).attr('y', 60).attr('width', W2 / 2).attr('height', 40).attr('fill', '#8c7a5b');
-          s.append('rect').attr('x', W2 / 2 - gap / 2).attr('y', 54).attr('width', gap).attr('height', 46).attr('fill', '#e0533d');
-          s.append('path').attr('d', `M${W2 / 2},${H2} L${W2 / 2},100`).attr('stroke', '#e0533d').attr('stroke-width', 14);
-          s.append('rect').attr('y', 100).attr('width', W2).attr('height', 70).attr('fill', 'rgba(224,83,61,.25)');
-          s.append('text').attr('x', 40).attr('y', 85).attr('fill', '#fff').attr('font-size', 12).text('← プレート');
-          s.append('text').attr('x', W2 - 110).attr('y', 85).attr('fill', '#fff').attr('font-size', 12).text('プレート →');
-          s.append('text').attr('x', W2 / 2).attr('y', 45).attr('text-anchor', 'middle').attr('font-size', 12).attr('fill', 'var(--ink)').text('海嶺：マグマが上がり新しい海底ができる');
-          cap.innerHTML = '<b>広がる境界</b>：プレートが両側に離れていく。海底では<b>海嶺</b>（大西洋中央海嶺など）、陸上では<b>地溝帯</b>（アフリカ大地溝帯）ができる。アイスランドは海嶺が陸上に出た島。';
-        } else if (kind === 'subduct') {
-          s.append('rect').attr('width', W2).attr('height', 70).attr('fill', sea);
-          const off = t * 60;
-          s.append('path').attr('d', 'M0,70 L170,70 L330,170 L280,170 L150,90 L0,90Z').attr('fill', '#5d6a7a');
-          for (let i = 0; i < 4; i++) { const x = ((i * 50 + off) % 200); s.append('text').attr('x', x).attr('y', 84).attr('font-size', 11).attr('fill', '#fff').text('→'); }
-          s.append('path').attr('d', `M180,70 L340,70 L340,170 L330,170 L180,75Z`).attr('fill', '#8c7a5b');
-          s.append('path').attr('d', `M235,70 L255,${48 - 6 * Math.sin(t * Math.PI)} L275,70Z`).attr('fill', '#8c7a5b');
-          s.append('circle').attr('cx', 255).attr('cy', 120).attr('r', 9 + 2 * Math.sin(t * 6.28)).attr('fill', '#e0533d');
-          s.append('path').attr('d', 'M255,111 L255,60').attr('stroke', '#e0533d').attr('stroke-width', 3).attr('stroke-dasharray', '3 3');
-          const star = (x, y) => s.append('text').attr('x', x).attr('y', y).attr('font-size', 16).attr('fill', '#ffd34d').text('✦');
-          if (t > 0.6) star(195, 92); if (t > 0.8) star(230, 112);
-          s.append('text').attr('x', 160).attr('y', 64).attr('font-size', 11).attr('fill', 'var(--ink)').text('海溝');
-          s.append('text').attr('x', 10).attr('y', 20).attr('font-size', 12).attr('fill', 'var(--ink)').text('海のプレート（重い）');
-          s.append('text').attr('x', 230).attr('y', 30).attr('font-size', 12).attr('fill', 'var(--ink)').text('火山');
-          s.append('text').attr('x', 270).attr('y', 100).attr('font-size', 11).attr('fill', '#fff').text('陸のプレート');
-          cap.innerHTML = '<b>狭まる境界（沈みこみ）</b>：重い海のプレートが陸のプレートの下に沈みこむ。<b>海溝</b>ができ、ひずみがたまって<b>海溝型地震・津波</b>が起こる。沈みこんだ所の上ではマグマができて<b>火山</b>が並ぶ（日本列島・アンデス山脈）。';
-        } else if (kind === 'collide') {
-          const p = Math.min(t * 1.2, 1);
-          s.append('rect').attr('x', 0).attr('y', 90).attr('width', 160 + p * 8).attr('height', 50).attr('fill', '#8c7a5b');
-          s.append('rect').attr('x', 180 - p * 8).attr('y', 90).attr('width', 170).attr('height', 50).attr('fill', '#9c8a6b');
-          s.append('path').attr('d', `M110,90 L170,${90 - 70 * p} L230,90Z`).attr('fill', '#7a6a4b');
-          s.append('path').attr('d', `M150,${90 - 50 * p} L170,${90 - 70 * p} L190,${90 - 50 * p}Z`).attr('fill', '#fff');
-          s.append('text').attr('x', 20).attr('y', 120).attr('fill', '#fff').attr('font-size', 12).text('インド → ');
-          s.append('text').attr('x', 240).attr('y', 120).attr('fill', '#fff').attr('font-size', 12).text('← ユーラシア');
-          cap.innerHTML = '<b>狭まる境界（衝突）</b>：大陸のプレートどうしがぶつかると、どちらも沈みこみにくいので押し上げられ、<b>高く険しい山脈</b>ができる（ヒマラヤ山脈・アルプス山脈）。今も少しずつ高くなっている。';
-        } else {
-          const d = (t < .5 ? t : 1 - t) * 60;
-          s.append('rect').attr('width', W2).attr('height', H2).attr('fill', '#b9c79a');
-          s.append('line').attr('x1', W2 / 2).attr('x2', W2 / 2).attr('y1', 0).attr('y2', H2).attr('stroke', '#7a5a2a').attr('stroke-width', 3).attr('stroke-dasharray', '8 4');
-          s.append('path').attr('d', `M20,${85 - d} L${W2 / 2},${85 - d}`).attr('stroke', '#5d4a2a').attr('stroke-width', 5);
-          s.append('path').attr('d', `M${W2 / 2},${85 + d} L${W2 - 20},${85 + d}`).attr('stroke', '#5d4a2a').attr('stroke-width', 5);
-          s.append('text').attr('x', 60).attr('y', 30).attr('font-size', 13).attr('fill', '#333').text('↑ プレート');
-          s.append('text').attr('x', W2 / 2 + 40).attr('y', H2 - 20).attr('font-size', 13).attr('fill', '#333').text('プレート ↓');
-          s.append('text').attr('x', 30).attr('y', 75 - d).attr('font-size', 11).attr('fill', '#333').text('道路・川');
-          cap.innerHTML = '<b>ずれる境界</b>（上から見た図）：プレートどうしが横にすれちがう。道路や川が断層をはさんでずれる。アメリカの<b>サンアンドレアス断層</b>が有名。';
-        }
-        raf = requestAnimationFrame(frame);
-      };
-      raf = requestAnimationFrame(frame);
-      return box;
-    }
-
     function renderSide() {
       const isW = S.area === 'world';
       ui.side.innerHTML = `<h2>${isW ? '世界の大地形' : '日本付近のプレート'}</h2>
@@ -231,14 +233,14 @@ registerTool('landform', {
         <div class="think"></div>`;
       if (S.info) { $('.info', ui.side).innerHTML = `<div class="card"><b>${S.info.t}</b><p style="margin:4px 0 0;font-size:14px">${S.info.b}</p></div>`; if (S.info.anim) S.anim = S.info.anim; }
       const kinds = [{ v: 'diverge', label: '広がる' }, { v: 'subduct', label: '沈みこむ' }, { v: 'collide', label: 'ぶつかる' }, { v: 'transform', label: 'ずれる' }];
-      $('.aseg', ui.side).appendChild(seg(kinds, S.anim, v => { S.anim = v; $('.anim', ui.side).innerHTML = ''; $('.anim', ui.side).appendChild(animBox(v)); }));
-      $('.anim', ui.side).appendChild(animBox(S.anim));
+      $('.aseg', ui.side).appendChild(seg(kinds, S.anim, v => { S.anim = v; $('.anim', ui.side).innerHTML = ''; $('.anim', ui.side).appendChild(plateAnim(v)); }));
+      $('.anim', ui.side).appendChild(plateAnim(S.anim));
       $('.think', ui.side).appendChild(isW
         ? thinkCard({ id: 'landform-world', views: ['pos', 'env'], q: '「新期造山帯」と「火山」「大地震」のレイヤーを重ねよう。火山や大地震の分布にはどのような特徴があるか。また、オーストラリアやアフリカ南部で大地震が少ない理由を説明しよう。', answer: '火山や大地震は、新期造山帯（環太平洋造山帯・アルプス＝ヒマラヤ造山帯）にそって帯のように分布している。そこはプレートが沈みこんだりぶつかったりする狭まる境界にあたるから。オーストラリアやアフリカ南部はプレートの境界から遠い安定陸塊なので、大地震や火山が少ない。' })
         : thinkCard({ id: 'landform-japan', views: ['pos', 'env', 'place'], q: '日本の太平洋側の沿岸では、なぜ巨大地震や津波への備えがとくに必要なのだろう。プレート境界の位置から説明しよう。', answer: '太平洋側の沖合には、太平洋プレートやフィリピン海プレートが沈みこむ日本海溝・南海トラフなどがある。ここでは陸のプレートが引きずりこまれてひずみがたまり、はね上がるときに巨大な海溝型地震が起こり、海底が動いて津波が発生する。南海トラフ地震は今後30年以内に起こる確率が高いとされ、避難計画や堤防などの備えが進められている。' }));
     }
 
     draw(); renderSide();
-    return () => cancelAnimationFrame(raf);
+    return () => {};
   }
 });

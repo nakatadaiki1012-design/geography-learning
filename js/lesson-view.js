@@ -93,9 +93,11 @@ registerTool('lessons', {
       function nextBtn(label, t) { const b = el(`<button type="button" class="btn" style="margin-top:12px">${label}</button>`); b.addEventListener('click', () => show(t)); return b; }
       function slides() {
         const s = l.slides[si];
-        body.innerHTML = `<div class="slide"><h3>${s.h}</h3>${s.b}</div>
+        const sf = fig(((FG[l.id] || {}).s || [])[si]);
+        body.innerHTML = `<div class="slide${sf ? ' has-fig' : ''}"><h3>${s.h}</h3><div class="stext">${s.b}</div><div class="sfig"></div></div>
           <div class="slide-nav"><button type="button" class="btn ghost sp" ${si ? '' : 'disabled'}>← 前へ</button><div class="dots">${l.slides.map((x, i) => `<i class="${i === si ? 'on' : ''}"></i>`).join('')}</div>
           <button type="button" class="btn sn">${si < l.slides.length - 1 ? '次へ →' : '② 資料で考える へ'}</button></div>`;
+        if (sf) $('.sfig', body).appendChild(sf);
         $('.sp', body).addEventListener('click', () => { if (si > 0) { si--; slides(); } });
         $('.sn', body).addEventListener('click', () => { if (si < l.slides.length - 1) { si++; slides(); } else show('tool'); });
       }
@@ -117,7 +119,7 @@ registerTool('lessons', {
           }
           const [q, choices, a, exp] = qs[k];
           body.appendChild(el(`<p class="small muted">第 ${k + 1} 問 / ${qs.length}</p>`));
-          choiceQuestion(body, { q, choices, a, exp }, ok => {
+          choiceQuestion(body, { q, choices, a, exp, expFig: ((FG[l.id] || {}).t || [])[k] }, ok => {
             if (ok) score++;
             const nb = el(`<button type="button" class="btn" style="margin-top:8px">${k + 1 < qs.length ? '次の問題 →' : '結果を見る'}</button>`);
             nb.addEventListener('click', () => { k++; step(); });
