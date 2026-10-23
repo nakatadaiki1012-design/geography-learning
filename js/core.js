@@ -394,3 +394,37 @@ function koppen(city) {
 const KG_COLOR = { A: '#d9473b', B: '#e3a63a', C: '#4f9b4a', D: '#3f7fc0', E: '#8c9bb0', H: '#9a64c6' };
 const KG_NAME = { A: '熱帯', B: '乾燥帯', C: '温帯', D: '亜寒帯（冷帯）', E: '寒帯', H: '高山気候' };
 function climateGroupOf(city) { return city.alt && city.alt > 2000 ? 'H' : koppen(city).group; }
+
+// --- 図の文字が小さくなりすぎないようにする ---
+// 地図やグラフは画面の幅に合わせて縮むので、スマホでは文字が読めないほど小さくなることがある。
+// 小さすぎる文字は読める大きさまで大きくし、大きくして重なったものは、大事な（もとが大きい）文字を残して消す。
+function legibleSvg(svgNode) {
+  const vb = svgNode.viewBox && svgNode.viewBox.baseVal; if (!vb || !vb.width) return;
+  const rect = svgNode.getBoundingClientRect(); if (!rect.width) return;
+  const k = rect.width / vb.width, min = window.innerWidth <= 900 ? 9.5 : 10;
+  const texts = Array.from(svgNode.querySelectorAll('text')).filter(t => t.textContent.trim() && !t.closest('[hidden]'));
+  const grown = [];
+  texts.forEach(t => {
+    if (t.dataset.fs0 === undefined) t.dataset.fs0 = parseFloat(getComputedStyle(t).fontSize) || 12;
+    const fs0 = +t.dataset.fs0;
+    t.style.display = '';
+    if (fs0 * k < min) { t.style.fontSize = (min / k) + 'px'; grown.push(t); } else if (t.style.fontSize && fs0 * k >= min) t.style.fontSize = fs0 + 'px';
+  });
+  if (!grown.length) return;
+  // 重なりを調べる（もとの文字が大きいもの・太いものを優先）
+  const score = t => +t.dataset.fs0 + (getComputedStyle(t).fontWeight >= 600 ? 2 : 0);
+  const order = texts.slice().sort((a, b) => score(b) - score(a));
+  const kept = [];
+  order.forEach(t => {
+    const r = t.getBoundingClientRect(); if (!r.width) return;
+    const hit = kept.some(q => { const w = Math.min(r.right, q.right) - Math.max(r.left, q.left), h = Math.min(r.bottom, q.bottom) - Math.max(r.top, q.top); return w > 2 && h > 2 && (w * h) > 0.25 * Math.min(r.width * r.height, q.width * q.height); });
+    if (hit && grown.includes(t)) t.style.display = 'none'; else kept.push(r);
+  });
+}
+(function watchLegible() {
+  let raf = 0;
+  const run = () => { raf = 0; document.querySelectorAll('#main svg').forEach(s => { if (s.closest('.ftip')) return; try { legibleSvg(s); } catch (e) { /* 図によってはスキップ */ } }); };
+  const later = () => { if (!raf) raf = requestAnimationFrame(() => requestAnimationFrame(run)); };
+  const start = () => { const m = document.getElementById('main'); if (!m) return setTimeout(start, 50); new MutationObserver(later).observe(m, { childList: true, subtree: true }); window.addEventListener('resize', later); later(); };
+  start();
+})();

@@ -129,7 +129,7 @@ table.tbl { border-collapse: collapse; width: 100%; font-size: 13px; margin: 6px
 .tbl th, .tbl td { border-bottom: 1px solid var(--line); padding: 4px 6px; text-align: left; }
 .tbl td.n { font-family: var(--font-data); text-align: right; }
 .tbl th { color: var(--muted); font-weight: 500; }
-.tag { display: inline-block; font-size: 11px; padding: 0 7px; border-radius: 999px; background: var(--chip); color: var(--muted); margin: 0 4px 2px 0; }
+.tag { display: inline-block; font-size: 12px; padding: 0 7px; border-radius: 999px; background: var(--chip); color: var(--muted); margin: 0 4px 2px 0; }
 .tag.v { background: color-mix(in srgb, var(--accent) 16%, var(--panel)); color: var(--accent); font-weight: 700; }
 .badge { display: inline-block; font-family: var(--font-data); font-weight: 600; padding: 1px 8px; border-radius: 6px; color: #fff; }
 .legend { display: flex; flex-wrap: wrap; gap: 4px 10px; font-size: 12px; align-items: center; }
@@ -243,7 +243,7 @@ details.more summary { cursor: pointer; color: var(--accent); font-weight: 700; 
 .exp .fig { margin-top: 8px; max-width: 560px; }
 /* さわって動かせる図 */
 .fig.fx { position: relative; }
-.fhint { position: absolute; top: 8px; right: 8px; font-size: 11px; line-height: 1.4; padding: 1px 8px; border-radius: 999px; background: color-mix(in srgb, var(--panel) 88%, transparent); border: 1px solid var(--accent); color: var(--accent); font-weight: 700; pointer-events: none; transition: opacity .4s; }
+.fhint { position: absolute; top: 8px; right: 8px; font-size: 12px; line-height: 1.4; padding: 1px 8px; border-radius: 999px; background: color-mix(in srgb, var(--panel) 88%, transparent); border: 1px solid var(--accent); color: var(--accent); font-weight: 700; pointer-events: none; transition: opacity .4s; }
 .fhint.used { opacity: 0; }
 .ftip { position: absolute; z-index: 4; pointer-events: none; background: var(--ink); color: var(--panel); font-size: 12px; line-height: 1.45; padding: 4px 9px; border-radius: 8px; transform: translate(-50%, calc(-100% - 10px)); white-space: normal; width: max-content; box-shadow: 0 2px 8px rgba(0,0,0,.2); }
 .ftip.below { transform: translate(-50%, 14px); }
@@ -355,18 +355,23 @@ details.more summary { cursor: pointer; color: var(--accent); font-weight: 700; 
   .brand { font-size: 17px; letter-spacing: 0; }
   .brand small { display: none; }
   .grpnav { flex-wrap: nowrap; gap: 3px; min-width: 0; overflow-x: auto; scrollbar-width: none; }
-  .grpnav button { padding: 3px 9px; font-size: 12.5px; white-space: nowrap; }
-  .icon-btn { padding: 3px 7px; font-size: 12px; }
+  .grpnav button { padding: 3px 10px; font-size: 13px; white-space: nowrap; min-height: 34px; }
+  .icon-btn { padding: 3px 9px; font-size: 13px; min-height: 34px; min-width: 34px; }
   .icon-btn .lbl { display: none; }
   .secnav { margin-top: 3px; scrollbar-width: none; }
-  .secnav button { padding: 3px 10px; font-size: 13px; }
+  .secnav button { padding: 3px 11px; font-size: 13.5px; min-height: 34px; }
   main { padding: 6px 6px 8px; }
   .tool { grid-template-columns: 1fr; grid-template-rows: auto minmax(0, 1fr); gap: 6px; height: calc(100dvh - var(--top-h) - 14px); min-height: 460px; }
   .stage { height: auto; min-height: 0; border-radius: 10px; }
   .stage > svg, .stage .svgwrap > svg { height: auto; max-height: 46dvh; }
   .stage-bar { flex-wrap: nowrap; overflow-x: auto; padding: 5px 6px; gap: 4px; scrollbar-width: none; }
   .stage-bar .seg { flex-wrap: nowrap; }
-  .seg button, .chip { padding: 3px 9px; font-size: 12px; }
+  .seg button, .chip { padding: 3px 11px; font-size: 13px; min-height: 34px; }
+  .btn { min-height: 36px; }
+  .btn.small { min-height: 34px; }
+  select, input[type="text"], input[type="number"] { min-height: 36px; }
+  .lpart summary { padding: 6px 0; }
+  .legend, .stage-foot, .fig figcaption { font-size: 12px; }
   .stage-foot { flex-wrap: nowrap; overflow-x: auto; white-space: nowrap; padding: 3px 6px; font-size: 11px; scrollbar-width: none; }
   .stage-foot .legend { flex-wrap: nowrap; }
   .legend { font-size: 11px; gap: 2px 8px; }
