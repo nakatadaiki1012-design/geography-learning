@@ -213,6 +213,17 @@ details.more summary { cursor: pointer; color: var(--accent); font-weight: 700; 
 .slide.has-fig h3 { grid-column: 1 / -1; }
 .slide .sfig .fig { margin-top: 2px; }
 .exp .fig { margin-top: 8px; max-width: 560px; }
+/* さわって動かせる図 */
+.fig.fx { position: relative; }
+.fhint { position: absolute; top: 8px; right: 8px; font-size: 11px; line-height: 1.4; padding: 1px 8px; border-radius: 999px; background: color-mix(in srgb, var(--panel) 88%, transparent); border: 1px solid var(--accent); color: var(--accent); font-weight: 700; pointer-events: none; transition: opacity .4s; }
+.fhint.used { opacity: 0; }
+.ftip { position: absolute; z-index: 4; pointer-events: none; background: var(--ink); color: var(--panel); font-size: 12px; line-height: 1.45; padding: 4px 9px; border-radius: 8px; transform: translate(-50%, calc(-100% - 10px)); white-space: normal; width: max-content; box-shadow: 0 2px 8px rgba(0,0,0,.2); }
+.ftip.below { transform: translate(-50%, 14px); }
+.ftip svg { background: var(--panel); border-radius: 6px; margin-top: 3px; }
+.ftip .chart text { fill: var(--muted); }
+.fig text { pointer-events: none; }
+.fig path.country.hov { stroke: var(--ink); stroke-width: 1.6; }
+
 .views { display: flex; flex-wrap: wrap; gap: 4px; margin: 6px 0; }
 
 /* --- スマホ：1画面におさめる（地図は上、説明は下のタブに分けて、ページ全体はスクロールしない） --- */
@@ -322,6 +333,7 @@ details.more summary { cursor: pointer; color: var(--accent); font-weight: 700; 
 <script src="js/tool-terrain.js"></script>
 <script src="js/tool-pop.js"></script>
 <script src="js/figures.js"></script>
+<script src="js/fig-interact.js"></script>
 <script src="js/challenge.js"></script>
 <script src="js/lesson-figs.js"></script>
 <script src="js/lessons.js"></script>
