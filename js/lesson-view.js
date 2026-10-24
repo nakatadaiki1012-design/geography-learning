@@ -11,6 +11,20 @@ const VIEW_DESC = {
   region: 'その地域はどのような特色をもつ地域といえるか'
 };
 
+// 授業の一覧のアイコン（授業ごと）と、大項目ごとの色
+const LESSON_ICON = {
+  s1: '🌐', s17: '🗾', s2: '🕐', s18: '✈️', s3: '🗺️', s4: '⛰️', s5: '🌋', s6: '🌦️', s7: '🕌', s8: '🏭', s9: '🌡️', s10: '⚡', s11: '👪', s12: '🌾', s13: '🏙️', s14: '🌊', s15: '🚨', s16: '🔎',
+  t1: '🌏', t2: '🏞️', t3: '🌀', t4: '🌳', t19: '🌪️', t5: '🚜', t6: '🐟', t7: '🛢️', t8: '🔧', t20: '🛒', t9: '🚢', t10: '🧳', t11: '🏘️', t21: '🌆', t22: '🍚', t12: '🤝',
+  t13: '🏯', t14: '🛕', t15: '🐪', t16: '🏰', t17: '🗽', t23: '🦙', t18: '🧭'
+};
+const PART_COLORS = ['#2f78c4', '#3f9a6a', '#d0832a', '#c8553d', '#7a5ec8', '#2a96a8', '#a86a3a'];
+const STEP_NAMES = ['説明', '資料', '考える', 'テスト', '提出'];
+// 1つの授業の進み具合（5つの段階のどこまで進んだか）
+function lessonSteps(l) {
+  const vis = store.get('visits', {})[l.id] || [], st = lessonStatus(l), cond = clearConds(st);
+  return [vis.includes('slides') || !!store.get('seen', {})[l.id], vis.includes('tool'), st.len >= CLEAR.len, st.passed, cond.every(c => c.ok)];
+}
+
 registerTool('lessons', {
   name: '授業モード',
   render(container, params = {}) {
@@ -28,24 +42,38 @@ registerTool('lessons', {
       const last = course.all.find(l => l.id === store.get('last', {})[course.id]);
       const fresh = !course.all.some(l => V[l.id]);
       const next = (last && !P[last.id] ? last : null) || course.all.find(l => !P[l.id] && V[l.id]) || course.all.find(l => !V[l.id]) || course.all.find(l => !P[l.id]);
-      root.innerHTML = `<div class="lesson">
-        <div class="lesson-head"><div><span class="no">授業モード</span><h2>${course.name}</h2></div>
-        <div style="margin-left:auto;text-align:right"><div class="small muted">合格した授業</div><div class="mono" style="font-size:24px;font-weight:600">${done} / ${course.all.length}</div></div></div>
+      const cleared = course.all.filter(l => lessonSteps(l)[4]).length;
+      const ring = (v, n) => { const r = 26, c = 2 * Math.PI * r; return `<svg viewBox="0 0 64 64" class="ring"><circle cx="32" cy="32" r="${r}" class="bg"/><circle cx="32" cy="32" r="${r}" class="fg" stroke-dasharray="${c * v / n} ${c}" transform="rotate(-90 32 32)"/><text x="32" y="30" text-anchor="middle" class="v">${v}</text><text x="32" y="44" text-anchor="middle" class="n">/ ${n}</text></svg>`; };
+      const nextPart = next ? course.parts.findIndex(p => p.lessons.includes(next)) : 0;
+      root.innerHTML = `<div class="lesson lmenu">
+        <div class="lhero" style="--pc:${PART_COLORS[nextPart % PART_COLORS.length]}">
+          <div class="lh-txt"><span class="no">授業モード</span><h2>${course.name}</h2><p class="small">${course.all.length}の授業。問い → 説明 → 資料 → 考える → テスト → 提出の順に進めよう</p></div>
+          <div class="lh-ring" title="合格した授業">${ring(done, course.all.length)}<span class="small">合格</span></div>
+          ${next ? `<button type="button" class="cont lnext"><span class="ic">${LESSON_ICON[next.id] || '📘'}</span><span class="tx"><span class="small">${fresh ? 'さあ、はじめよう' : '続きから'}</span><b>${next.no}　${next.title}</b><span class="small q">${next.q}</span></span><span class="go">▶</span></button>` : ''}
+        </div>
         <details class="howto"${fresh ? ' open' : ''}><summary><b>使い方</b>（はじめての人へ）</summary><ol class="small">
           <li>授業をえらび、<b>①説明 → ②資料 → ③考える → ④テスト → ⑤提出</b> の順に、下のボタンで進む</li>
           <li>④確認テストで4問中3問以上正解すると<b>合格</b>。③で用語を使って書き、④に合格すると<b>クリア</b>になり、⑤で先生に提出できる</li>
           <li>書いた文や結果は<b>この端末のブラウザ</b>に自動で保存される</li>
           <li>上の「見る・動かす・挑戦」では、地図やグラフの道具を自由に使える</li></ol></details>
-        ${next ? `<button type="button" class="btn cont">${fresh ? 'はじめる' : '続きから'}：${next.no} ${next.title}</button>` : ''}
-        <div class="lesson-menu"></div></div>`;
+        <div class="lesson-menu"></div>
+        <p class="small muted" style="margin:6px 0 0">クリア ${cleared} / ${course.all.length}（クリア＝テスト合格＋考えようを書いた授業）</p></div>`;
       const mb = $('.lesson-menu', root);
-      course.parts.forEach(p => {
+      course.parts.forEach((p, pi) => {
+        const pc = PART_COLORS[pi % PART_COLORS.length];
         const has = (next && p.lessons.includes(next)) || p.lessons.some(l => l === last);
         const pd = p.lessons.filter(l => P[l.id]).length;
-        const det = el(`<details class="lpart"${has || (!next && p === course.parts[0]) ? ' open' : ''}><summary><h3>${p.name}<small>${pd} / ${p.lessons.length} 合格</small></h3></summary><div class="lgrid"></div></details>`);
+        const det = el(`<details class="lpart" style="--pc:${pc}"${has || (!next && p === course.parts[0]) ? ' open' : ''}><summary>
+          <span class="pbar"><span class="pt">${p.name}</span><span class="picons">${p.lessons.map(l => `<i class="${P[l.id] ? 'ok' : ''}">${LESSON_ICON[l.id] || '📘'}</i>`).join('')}</span>
+          <span class="pprog"><i style="width:${pd / p.lessons.length * 100}%"></i></span><small>${pd} / ${p.lessons.length} 合格</small></span></summary><div class="lgrid"></div></details>`);
         const grid = $('.lgrid', det);
         p.lessons.forEach(l => {
-          const b = el(`<button type="button" class="lcard"><span class="no">${l.no}</span><span class="tt">${l.title}</span><span class="q">${l.q}</span><span class="st">${P[l.id] ? '<span class="hanko" style="width:34px;height:34px;font-size:11px;border-width:2px">合格</span>' : V[l.id] ? '✓' : ''}</span></button>`);
+          const stp = lessonSteps(l);
+          const b = el(`<button type="button" class="lcard${l === next ? ' is-next' : ''}${P[l.id] ? ' is-done' : ''}">
+            <span class="ic">${LESSON_ICON[l.id] || '📘'}</span>
+            <span class="no">${l.no}${l === next ? '<em>つぎはここ</em>' : ''}</span><span class="tt">${l.title}</span><span class="q">${l.q}</span>
+            <span class="steps">${stp.map((v, i) => `<i class="${v ? 'on' : ''}" title="${STEP_NAMES[i]}"></i>`).join('')}<span class="small">${stp.filter(Boolean).length}/5</span></span>
+            ${P[l.id] ? '<span class="hanko">合格</span>' : ''}</button>`);
           b.addEventListener('click', () => go(l.id));
           grid.appendChild(b);
         });
@@ -89,6 +117,7 @@ registerTool('lessons', {
         cleanup && cleanup(); cleanup = null;
         $$('.tabs button', root).forEach(b => { b.setAttribute('aria-selected', String(b.dataset.t === t)); if (b.dataset.t === t) b.scrollIntoView({ block: 'nearest', inline: 'nearest' }); });
         $('.lesson', root).dataset.tab = t;
+        const VS = store.get('visits', {}); VS[l.id] = Array.from(new Set((VS[l.id] || []).concat(t))); store.set('visits', VS);
         body.innerHTML = '';
         body.scrollTop = 0;
         const i = TABS.indexOf(t);

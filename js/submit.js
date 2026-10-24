@@ -134,7 +134,7 @@ function clearDeviceButton() {
   const b = el('<button type="button" class="btn small ghost">この端末の記録を消す（次の人へ）</button>');
   b.addEventListener('click', () => {
     if (!confirm('この端末に保存されている名前・考えようの記述・テストの結果・合格をすべて消します。よろしいですか？\n（共用の端末を次の人に使わせる前に押してください）')) return;
-    ['profile', 'think', 'checks', 'viewed', 'scores', 'passed', 'seen', 'bestReading', 'bestMapquiz'].forEach(k => store.set(k, k === 'profile' ? { name: '', klass: '' } : {}));
+    ['profile', 'think', 'checks', 'viewed', 'scores', 'passed', 'seen', 'visits', 'last', 'bestReading', 'bestMapquiz', 'bestPhys'].forEach(k => store.set(k, k === 'profile' ? { name: '', klass: '' } : {}));
     location.reload();
   });
   return b;
