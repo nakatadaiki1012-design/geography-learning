@@ -452,3 +452,18 @@ function legibleSvg(svgNode) {
   const start = () => { const m = document.getElementById('main'); if (!m) return setTimeout(start, 50); new MutationObserver(later).observe(m, { childList: true, subtree: true }); window.addEventListener('resize', later); later(); };
   start();
 })();
+
+// お祝いの紙ふぶき（合格・自己ベストなど）。動きを減らす設定の端末では出さない
+function celebrate() {
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const box = el('<div class="confetti" aria-hidden="true"></div>');
+  const marks = ['🎉', '⭐', '🌏', '🗾', '✨', '🏅'];
+  for (let i = 0; i < 28; i++) {
+    const s = el(`<span>${marks[i % marks.length]}</span>`);
+    s.style.left = Math.random() * 100 + '%'; s.style.animationDelay = Math.random() * 0.5 + 's'; s.style.fontSize = 14 + Math.random() * 16 + 'px';
+    s.style.setProperty('--dx', (Math.random() * 120 - 60) + 'px');
+    box.appendChild(s);
+  }
+  document.body.appendChild(box);
+  setTimeout(() => box.remove(), 2600);
+}

@@ -3,7 +3,7 @@
 const GROUPS = [
   { id: 'see', name: '見る', secs: [['globe', '地球儀と図法'], ['climate', '気候'], ['stats', '統計地図（GIS）'], ['landform', '地形と災害'], ['zukan', '地形図鑑']] },
   { id: 'move', name: '動かす', secs: [['time', '時差'], ['topo', '地形図を読む'], ['hazard', '防災シミュレーション'], ['pop', '人口ピラミッド']] },
-  { id: 'try', name: '挑戦', secs: [['reading', '資料読み取り'], ['mapquiz', '白地図：国'], ['physmap', '白地図：山・川・砂漠']] },
+  { id: 'try', name: '挑戦', secs: [['games', 'ゲーム'], ['reading', '資料読み取り'], ['mapquiz', '白地図：国'], ['physmap', '白地図：山・川・砂漠']] },
   { id: 'class', name: '授業<span class="lbl">モード</span>', secs: [['lessons/sogo', '<span class="lbl">地理</span>総合'], ['lessons/tankyu', '<span class="lbl">地理</span>探究']] }
 ];
 

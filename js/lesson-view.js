@@ -18,6 +18,13 @@ const LESSON_ICON = {
   t13: '🏯', t14: '🛕', t15: '🐪', t16: '🏰', t17: '🗽', t23: '🦙', t18: '🧭'
 };
 const PART_COLORS = ['#2f78c4', '#3f9a6a', '#d0832a', '#c8553d', '#7a5ec8', '#2a96a8', '#a86a3a'];
+// 称号：地理総合と地理探究で合格した授業の合計で上がる
+const RANKS = [[0, '🌱', '地理ビギナー'], [1, '🧭', '地図の見習い'], [4, '🎒', '地理探検家'], [10, '🔭', '地理研究員'], [20, '🎓', '地理博士'], [35, '👑', '地理マスター']];
+function rankHtml() {
+  const n = Object.keys(store.get('passed', {})).length;
+  const i = RANKS.reduce((a, r, k) => n >= r[0] ? k : a, 0), R = RANKS[i], N = RANKS[i + 1];
+  return `<span class="rk">${R[1]} 称号：<b>${R[2]}</b></span>${N ? `<span class="small">あと${N[0] - n}つ合格で「${N[2]}」</span>` : '<span class="small">最高の称号！</span>'}`;
+}
 const STEP_NAMES = ['説明', '資料', '考える', 'テスト', '提出'];
 // 1つの授業の進み具合（5つの段階のどこまで進んだか）
 function lessonSteps(l) {
@@ -49,7 +56,8 @@ registerTool('lessons', {
         <div class="lhero" style="--pc:${PART_COLORS[nextPart % PART_COLORS.length]}">
           <div class="lh-txt"><span class="no">授業モード</span><h2>${course.name}</h2><p class="small">${course.all.length}の授業。問い → 説明 → 資料 → 考える → テスト → 提出の順に進めよう</p></div>
           <div class="lh-ring" title="合格した授業">${ring(done, course.all.length)}<span class="small">合格</span></div>
-          ${next ? `<button type="button" class="cont lnext"><span class="ic">${LESSON_ICON[next.id] || '📘'}</span><span class="tx"><span class="small">${fresh ? 'さあ、はじめよう' : '続きから'}</span><b>${next.no}　${next.title}</b><span class="small q">${next.q}</span></span><span class="go">▶</span></button>` : ''}
+          <div class="lrank">${rankHtml()}</div>
+          ${next ? `<button type="button" class="cont lnext"><span class="ic">${LESSON_ICON[next.id] || '📘'}</span><span class="tx"><span class="small">${fresh ? 'さあ、はじめよう' : '続きから'}</span><b>${next.no}　${next.title}</b><span class="small q">${LESSON_HOOK[next.id] ? LESSON_HOOK[next.id][1] : next.q}</span></span><span class="go">▶</span></button>` : ''}
         </div>
         <details class="howto"${fresh ? ' open' : ''}><summary><b>使い方</b>（はじめての人へ）</summary><ol class="small">
           <li>授業をえらび、<b>①説明 → ②資料 → ③考える → ④テスト → ⑤提出</b> の順に、下のボタンで進む</li>
@@ -71,7 +79,7 @@ registerTool('lessons', {
           const stp = lessonSteps(l);
           const b = el(`<button type="button" class="lcard${l === next ? ' is-next' : ''}${P[l.id] ? ' is-done' : ''}">
             <span class="ic">${LESSON_ICON[l.id] || '📘'}</span>
-            <span class="no">${l.no}${l === next ? '<em>つぎはここ</em>' : ''}</span><span class="tt">${l.title}</span><span class="q">${l.q}</span>
+            <span class="no">${l.no}${l === next ? '<em>つぎはここ</em>' : ''}</span><span class="tt">${l.title}</span><span class="q">${LESSON_HOOK[l.id] ? LESSON_HOOK[l.id][1] : l.q}</span>
             <span class="steps">${stp.map((v, i) => `<i class="${v ? 'on' : ''}" title="${STEP_NAMES[i]}"></i>`).join('')}<span class="small">${stp.filter(Boolean).length}/5</span></span>
             ${P[l.id] ? '<span class="hanko">合格</span>' : ''}</button>`);
           b.addEventListener('click', () => go(l.id));
@@ -163,7 +171,8 @@ registerTool('lessons', {
       function slides() {
         const s = l.slides[si];
         const sf = fig(((FG[l.id] || {}).s || [])[si]);
-        body.innerHTML = `<div class="slide${sf ? ' has-fig' : ''}"><h3>${s.h}</h3><div class="stext">${s.b}</div><div class="sfig"></div></div>`;
+        const hk = si === 0 && LESSON_HOOK[l.id];
+        body.innerHTML = `<div class="slide${sf ? ' has-fig' : ''}"><h3>${s.h}</h3><div class="stext">${hk ? `<div class="hook"><span class="hi">${hk[0]}</span><span><b>身近なところから</b>${hk[1]}</span></div>` : ''}${s.b}</div><div class="sfig"></div></div>`;
         if (sf) $('.sfig', body).appendChild(sf);
         const last = si >= l.slides.length - 1;
         foot.set({
@@ -183,7 +192,7 @@ registerTool('lessons', {
           body.innerHTML = '';
           if (k >= qs.length) {
             const ok = score >= 3;
-            if (ok) { const P = passed(); P[l.id] = true; store.set('passed', P); $('.tabs button[data-t="test"] .medal', root).textContent = '🏅'; }
+            if (ok) { const P = passed(); if (!P[l.id]) setTimeout(celebrate, 200); P[l.id] = true; store.set('passed', P); $('.tabs button[data-t="test"] .medal', root).textContent = '🏅'; }
             // 最高点・1回目の点・挑戦した回数・はじめて合格した日時を残す
             const SC = store.get('scores', {}), o = SC[l.id] || {};
             SC[l.id] = { s: Math.max(o.s ?? 0, score), t: Date.now(), first: o.first ?? score, tries: (o.tries || 0) + 1, pt: o.pt || (ok ? Date.now() : null) };
