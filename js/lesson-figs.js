@@ -18,6 +18,7 @@ const FG = (() => {
   const KURD = F.world({ region: 'wasia', hl: ['792', '368', '364', '760'], color: '#e8c18a', names: ['792', '368', '364', '760'], lines: [{ c: [[38, 38.5], [42, 38], [45, 36], [47, 34.5]], color: 'var(--shu)', w: 16, op: .4 }], labels: [[43, 39.8, 'クルド人の多い地域', 'var(--shu)', 12]], cap: 'クルド人は4つの国にまたがって暮らす' });
   const AFRICA = F.world({ box: [-20, -36, 52, 38], cap: 'アフリカの国境：緯線・経線にそった直線が多い', lines: [{ c: [[25, 22], [25, 20]], color: 'transparent' }] });
   const ASEAN = F.world({ region: 'seasia', hl: ['360', '764', '704', '608', '458', '104', '116', '418', '096'], color: '#e08a2e', names: ['360', '764', '704', '608', '458'], cap: 'ASEAN（東南アジア諸国連合）の加盟国' });
+  const SEZ = F.world({ region: 'eastasia', hl: ['156'], color: '#e8c18a', pts: [[114.06, 22.54, 'シェンチェン'], [118.09, 24.48, 'アモイ'], [121.47, 31.23, 'シャンハイ']], cap: '沿岸部に経済特区や大都市が集まる（内陸部との経済格差）' });
   const QINLING = F.world({ region: 'eastasia', lines: [{ c: [[104, 33.6], [110, 33.8], [116, 33], [119, 33.5]], color: 'var(--shu)', w: 3 }], labels: [[112, 39, '北：畑作（小麦）', '#8c6d3f', 12], [112, 27, '南：稲作', '#2c8350', 12], [104, 35.2, 'チンリン山脈・ホワイ川', 'var(--shu)', 11]], pts: [[114.06, 22.54, 'シェンチェン（経済特区）']], cap: '年降水量1000mmの線とほぼ重なる' });
   const COCOA = F.world({ region: 'safrica', hl: { '288': '#8c6d3f', '384': '#8c6d3f', '566': '#333333', '894': '#d9473b', '180': '#b9a6d8' }, names: ['288', '384', '566', '894'], legend: [['#8c6d3f', 'カカオ豆'], ['#333333', '石油'], ['#d9473b', '銅'], ['#b9a6d8', 'コバルト・銅']], cap: '特定の産物の輸出にたよる国（モノカルチャー経済）' });
   const SOIL = F.world({ pts: [[32, 49, 'チェルノーゼム'], [-48, -20, 'テラローシャ'], [77, 19, 'レグール'], [-62, -5, 'ラトソル'], [100, 62, 'ポドゾル'], [-98, 42, 'プレーリー土']], cap: '主な土壌（例）' });
@@ -47,7 +48,7 @@ const FG = (() => {
       t: [F.choro('tfr'), F.scheme('transition'), F.pyramids(), F.rank('old', { n: 8, hl: ['392'], cap: '65歳以上の割合（%）の高い国' })] },
     s12: { s: [F.choro('gni', { cap: '1人当たりGNI：栄養不足の人は所得の低い地域に多い' }), EXPORT, IMPORT],
       t: [IMPORT, EXPORT, IMPORT, F.world({ hl: ['356', '050', '360', '704', '608', '586', '764'], color: '#4f9b4a', cap: '緑の革命で穀物生産が増えたアジアの国々（例）' })] },
-    s13: { s: [F.choro('urban'), F.scheme('urban'), F.world({ pts: [[-49.3, -25.4, 'クリチバ（バス高速輸送）'], [137.2, 36.7, '富山（コンパクトシティ）']], cap: '都市問題の解決の例' })],
+    s13: { s: [F.choro('urban'), F.scheme('urban'), F.world({ pts: [[-49.3, -25.4, 'クリチバ（バス高速輸送）'], [137.2, 36.7, '富山（コンパクトシティ）']], cap: '都市問題の解決の例' }), F.scheme('issues')],
       t: [F.world({ region: 'seasia', hl: ['764'], pts: [[100.5, 13.75, 'バンコク']], cap: 'バンコク：タイの人口や機能が集中' }), F.scheme('urban'), F.scheme('urban'), F.scatter('gni', 'urban', { names: ['562', '356', '076', '392'], cap: '所得と都市人口率：発展途上国でも都市化が急に進んでいる' })] },
     s14: { s: [F.plates({ japan: true, quakes: true, volc: true, cap: '日本付近のプレートと火山（▲）・大地震（◎）' }), F.climate('tokyo', null, { cap: '東京の雨温図：梅雨・秋雨・台風で6月と9月に雨が多い' }), F.scheme('help')],
       t: [F.plates({ japan: true, quakes: true, cap: '海溝型地震（海溝ぞい）と直下型地震（内陸の活断層）' }), F.climate('tokyo', null, { cap: '梅雨や台風の時期（6〜9月）に大雨が多い' }), F.scheme('help'), F.scheme('symbols')] },
@@ -78,10 +79,12 @@ const FG = (() => {
       t: [F.choro('dens'), F.scheme('pushpull'), F.world({ hl: ['760', '004', '804', '728'], names: ['760', '004', '804'], cap: '多くの難民が生まれた国（例）' }), F.choro('pop', { style: 'circle' })] },
     t11: { s: [F.scheme('floodplain'), F.world({ box: [-82, 36, -68, 44], pts: [[-71, 42.4, 'ボストン'], [-74, 40.7, 'ニューヨーク'], [-75.2, 40, 'フィラデルフィア'], [-76.6, 39.3, 'ボルティモア'], [-77, 38.9, 'ワシントン']], cap: 'メガロポリス（ボストン〜ワシントン）' })],
       t: [F.block('fan', { cap: '砺波平野の散村は扇状地の上に広がる（扇状地のブロック図）' }), F.world({ box: [-82, 36, -68, 44], pts: [[-71, 42.4, 'ボストン'], [-74, 40.7, 'ニューヨーク'], [-77, 38.9, 'ワシントン']] }), F.world({ pts: [[-47.9, -15.8, 'ブラジリア'], [149.1, -35.3, 'キャンベラ'], [-77, 38.9, 'ワシントンD.C.']], cap: '計画的につくられた首都' }), F.world({ box: 'japan', pts: [[142, 43.5, '北海道（屯田兵村）']] })] },
-    t12: { s: [F.world({ hl: ['124', '036'], names: ['124', '036'], pts: [[103.8, 1.35, 'シンガポール']], cap: '多文化主義をとる国（例）' }), KURD],
+    t12: { s: [F.world({ hl: ['124', '036'], names: ['124', '036'], pts: [[103.8, 1.35, 'シンガポール']], cap: '多文化主義をとる国（例）' }), KURD, F.world({ box: [121, 19, 157, 47], hl: ['392'], pts: [[146.5, 44, '北方領土'], [131.87, 37.24, '竹島'], [123.5, 25.75, '尖閣諸島']], cap: '北方領土・竹島・尖閣諸島（いずれも日本固有の領土）' })],
       t: [KURD, F.world({ region: 'oceania', hl: ['036'], names: ['036'] }), F.world({ box: 'namerica', hl: ['124'], pts: [[-71.2, 46.8, 'ケベック']], cap: 'カナダ：ケベック州ではフランス語を話す人が多い' }), AFRICA] },
-    t13: { s: [F.world({ region: 'eastasia', names: ['392', '156', '410', '496'], cap: '東アジア' }), QINLING],
-      t: [QINLING, QINLING, F.scheme('urban'), F.rank('tfr', { asc: true, n: 8, hl: ['410'], cap: '合計特殊出生率の低い国' })] },
+    t24: { s: [F.koppenMap({ cap: '気候で区分した世界（等質地域の例）' }), F.religion({ cap: '宗教で区分すると、まとまりが変わる' }), F.scheme('chishi')],
+      t: [F.koppenMap({ cap: '気候区は等質地域の例' }), F.scheme('urban'), F.scheme('chishi'), F.choro('gni', { cap: '1人当たりGNIで区分した世界：気候で区分したときとまとまりがちがう' })] },
+    t13: { s: [QINLING, SEZ, F.world({ region: 'eastasia', hl: { '410': '#3f7fc0', '496': '#e3a63a' }, names: ['410', '496'], cap: '韓国とモンゴル' })],
+      t: [QINLING, SEZ, F.climate('ulaanbaatar', null, { cap: 'ウランバートル：乾燥した草原。遊牧とゲルの暮らし' }), F.rank('tfr', { asc: true, n: 8, hl: ['410'], cap: '合計特殊出生率の低い国' })] },
     t14: { s: [F.religion({ region: 'seasia', names: ['360', '764', '608', '458', '704'] }), F.world({ region: 'sasia', pts: [[77.6, 13, 'ベンガルール（ICT）'], [92, 26.3, 'アッサム（茶）'], [75.5, 30.8, 'パンジャブ（小麦）'], [76, 19.5, 'デカン高原（綿花）']], cap: '南アジアの主な産業' })],
       t: [ASEAN, F.world({ region: 'seasia', hl: ['360', '458'], color: '#4f9b4a', names: ['360', '458'], cap: '油やし（パーム油）の大産地' }), F.world({ region: 'sasia', pts: [[77.6, 13, 'ベンガルール']], hl: ['356'], cap: 'インドのICT産業の中心' }), F.world({ region: 'seasia', hl: ['458'], names: ['458'] })] },
     t15: { s: [F.climate('riyadh'), COCOA],

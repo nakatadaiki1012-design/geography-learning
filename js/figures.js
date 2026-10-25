@@ -276,7 +276,7 @@ const F = {
       const cap = {
         river: '川の上流から河口までの地形（模式図）', floodplain: '氾濫原の断面（模式図）。自然堤防の上に集落、後背湿地に水田', fan: '扇状地（上から見た模式図）', coast: '沈水海岸：陸地が沈んだり海面が上がったりしてできた海岸（上から見た模式図）',
         urban: '都市の内部と人口の動き（模式図）', thunen: 'チューネンの孤立国（模式図）', weber: '工業の立地（模式図）', transition: '人口転換（出生率・死亡率の変化の模式図）', pushpull: '人口移動のしくみ',
-        terrace: '河岸段丘の断面（模式図）', symbols: '主な地図記号', scale: '縮尺の計算（2万5千分の1）', karst: 'カルスト地形（模式図）', glacier: 'V字谷とU字谷（谷の断面の模式図）', survey: '地域調査の流れ', help: '防災の3つの「助」', territory: '国家の領域と排他的経済水域（模式図・長さは実際の比率ではない）', altitude: 'アンデスの高度による土地利用（模式図）', deltas: '三角州の形：波の強さと、川が運ぶ土砂の量で形が変わる', sandcoast: '砂がつくる海岸の地形（上から見た模式図）', coral: 'さんご礁のでき方（上：上から見た図、下：断面）：島が沈むと①→②→③と変わる', oxbow: '三日月湖のでき方（上から見た模式図）', strata: '地層と地形：かたい地層が残ってできるケスタ・メサ・ビュート（断面の模式図）', hazardmap: 'ハザードマップの浸水の深さの目安'
+        terrace: '河岸段丘の断面（模式図）', symbols: '主な地図記号', scale: '縮尺の計算（2万5千分の1）', karst: 'カルスト地形（模式図）', glacier: 'V字谷とU字谷（谷の断面の模式図）', survey: '地域調査の流れ', help: '防災の3つの「助」', territory: '国家の領域と排他的経済水域（模式図・長さは実際の比率ではない）', altitude: 'アンデスの高度による土地利用（模式図）', chishi: '地誌の2つの調べ方（模式図）', issues: '地球的課題はたがいにつながっている（模式図）', deltas: '三角州の形：波の強さと、川が運ぶ土砂の量で形が変わる', sandcoast: '砂がつくる海岸の地形（上から見た模式図）', coral: 'さんご礁のでき方（上：上から見た図、下：断面）：島が沈むと①→②→③と変わる', oxbow: '三日月湖のでき方（上から見た模式図）', strata: '地層と地形：かたい地層が残ってできるケスタ・メサ・ビュート（断面の模式図）', hazardmap: 'ハザードマップの浸水の深さの目安'
       }[kind];
       if (kind === 'river') {
         P(`M0,40 L90,60 L150,140 L250,160 L360,175 L420,180 L480,182 L480,${H} L0,${H}Z`, land);
@@ -489,6 +489,33 @@ const F = {
         lab(365, 196, '水平な地層（アメリカ西部）', { s: 10, b: false, c: 'var(--muted)' });
         svg.append('rect').attr('x', 118).attr('y', 204).attr('width', 12).attr('height', 9).attr('fill', hard); lab(134, 212, 'かたい地層（けずられにくい）', { s: 10, a: 'start' });
         svg.append('rect').attr('x', 300).attr('y', 204).attr('width', 12).attr('height', 9).attr('fill', soft).attr('stroke', '#b89a6a'); lab(316, 212, 'やわらかい地層', { s: 10, a: 'start' });
+      } else if (kind === 'chishi') {
+        // 地誌の調べ方：静態地誌（項目の順に）と動態地誌（中心テーマから）
+        const box = (x, y, w, h, t, c, tc) => { svg.append('rect').attr('x', x).attr('y', y).attr('width', w).attr('height', h).attr('rx', 6).attr('fill', c); lab(x + w / 2, y + h / 2 + 4, t, { s: 11, c: tc || 'var(--ink)', halo: false }); };
+        const mk = arrowDef(svg, 'var(--muted)');
+        lab(110, 18, '静態地誌（項目の順に調べる）', { s: 12 });
+        ['自然', '歴史', '産業', '人口・都市', '生活文化'].forEach((t, i) => { box(60, 28 + i * 36, 100, 24, t, '#e8e0cc'); if (i < 4) svg.append('line').attr('x1', 110).attr('x2', 110).attr('y1', 53 + i * 36).attr('y2', 63 + i * 36).attr('stroke', 'var(--muted)').attr('marker-end', mk); });
+        lab(360, 18, '動態地誌（中心テーマと結びつける）', { s: 12 });
+        const cx = 360, cy = 112;
+        [['産業', -78, -52], ['人の移動', 78, -52], ['農業', -86, 30], ['生活文化', 86, 30], ['自然', 0, 74]].forEach(([t, dx, dy]) => {
+          svg.append('line').attr('x1', cx).attr('y1', cy).attr('x2', cx + dx * 0.72).attr('y2', cy + dy * 0.72).attr('stroke', 'var(--accent)').attr('stroke-width', 2);
+          box(cx + dx - 32, cy + dy - 12, 64, 24, t, '#dbe8f4');
+        });
+        svg.append('circle').attr('cx', cx).attr('cy', cy).attr('r', 40).attr('fill', 'var(--accent)');
+        lab(cx, cy - 3, '中心テーマ', { s: 11, c: '#fff', halo: false }); lab(cx, cy + 12, '例：EU統合', { s: 9.5, b: false, c: '#fff', halo: false });
+        lab(240, 212, '静態地誌は全体を整理しやすく、動態地誌は地域の結び付きや変化をとらえやすい', { s: 10, b: false, c: 'var(--muted)' });
+      } else if (kind === 'issues') {
+        // 地球的課題のつながり
+        const N = { pop: [240, 34, '人口問題'], food: [86, 100, '食料問題'], city: [394, 100, '居住・都市問題'], ene: [130, 182, '資源・エネルギー問題'], env: [350, 182, '地球環境問題'] };
+        const mk = arrowDef(svg, 'var(--shu)');
+        [['pop', 'food', '人口の急増'], ['pop', 'city', '都市へ集中'], ['ene', 'env', '大量消費→温暖化'], ['env', 'food', '干ばつ・洪水'], ['city', 'env', '大気汚染・ごみ']].forEach(([a, b, t]) => {
+          const [x1, y1] = N[a], [x2, y2] = N[b], k = 0.62, mx = x1 + (x2 - x1) * 0.5, my = y1 + (y2 - y1) * 0.5;
+          svg.append('line').attr('x1', x1 + (x2 - x1) * (1 - k) / 2).attr('y1', y1 + (y2 - y1) * (1 - k) / 2).attr('x2', x2 - (x2 - x1) * (1 - k) / 2).attr('y2', y2 - (y2 - y1) * (1 - k) / 2).attr('stroke', 'var(--shu)').attr('stroke-width', 2).attr('marker-end', mk);
+          lab(mx, my - 4, t, { s: 10, c: 'var(--shu)' });
+        });
+        Object.values(N).forEach(([x, y, t]) => { svg.append('rect').attr('x', x - 62).attr('y', y - 15).attr('width', 124).attr('height', 30).attr('rx', 15).attr('fill', '#dbe8f4').attr('stroke', 'var(--accent)'); lab(x, y + 4, t, { s: 12, halo: false }); });
+        svg.append('rect').attr('x', 192).attr('y', 58).attr('width', 96).attr('height', 34).attr('rx', 8).attr('fill', '#4f9b4a');
+        lab(240, 72, 'SDGs', { s: 13, c: '#fff', halo: false }); lab(240, 86, '17の目標で協力', { s: 10, b: false, c: '#fff', halo: false });
       } else if (kind === 'survey' || kind === 'help') {
         const items = kind === 'survey'
           ? [['① 課題を見つける', '身近な地域の「なぜ？」'], ['② 仮説を立てる', '「〜だからではないか」'], ['③ 調べる', '地形図・統計・GIS、聞き取り・観察'], ['④ まとめる', '主題図・グラフで仮説を確かめる'], ['⑤ 発表・提案する', '解決策を考えて発信する']]
