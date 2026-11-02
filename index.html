@@ -471,7 +471,12 @@ button.tag.v { border-color: transparent; }
   .lesson[data-tab] .slide .stext { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
   .lesson[data-tab] .slide .stext > :first-child { margin-top: 4px; }
   .lesson[data-tab="tool"] .tabbody > .embed { flex: 1 1 auto; min-height: 0; }
-  .lesson[data-tab="tool"] .embed .tool { height: 100% !important; min-height: 0; }
+  .lesson[data-tab="tool"] .embed .tool { height: 100% !important; min-height: 0; grid-template-rows: minmax(0, 1.15fr) minmax(0, 1fr); }
+  /* 地図は上半分の枠に収まるように縮め、下の説明パネルの高さを確保する */
+  .lesson[data-tab="tool"] .embed .stage { min-height: 0; }
+  .lesson[data-tab="tool"] .embed .stage .svgwrap { min-height: 0; }
+  .lesson[data-tab="tool"] .embed .stage .svgwrap > svg, .lesson[data-tab="tool"] .embed .stage > svg { height: 100%; max-height: none; }
+  .lesson[data-tab="tool"] .embed .side { min-height: 0; }
   .lesson[data-tab] .tabbody > * { flex: none; }
   .lesson[data-tab] .tabbody > .slide, .lesson[data-tab="tool"] .tabbody > .embed { flex: 1 1 auto; }
   .lesson.fill { height: calc(100dvh - var(--top-h) - 70px); display: flex; flex-direction: column; overflow: hidden; }
@@ -621,7 +626,7 @@ button.tag.v { border-color: transparent; }
   .tabs button { flex: 1 1 0; padding: 7px 2px; text-align: center; min-height: 36px; }
   .tabs .tl { display: none; }
   .tabs .ts { display: inline; }
-  .toolhint { font-size: 12px; line-height: 1.35; }
+  .toolhint { font-size: 12px; line-height: 1.35; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .side.more::after { margin: 6px -10px 0; }
   .stage-foot .legend { flex-wrap: wrap; }
   .lnav .btn { min-height: 34px; }
