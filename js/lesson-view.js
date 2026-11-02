@@ -172,7 +172,10 @@ registerTool('lessons', {
         const s = l.slides[si];
         const sf = fig(((FG[l.id] || {}).s || [])[si]);
         const hk = si === 0 && LESSON_HOOK[l.id];
-        body.innerHTML = `<div class="slide${sf ? ' has-fig' : ''}"><h3>${s.h}</h3><div class="stext">${hk ? `<div class="hook"><span class="hi">${hk[0]}</span><span><b>身近なところから</b>${hk[1]}</span></div>` : ''}${s.b}</div><div class="sfig"></div></div>`;
+        // 豆知識は後ろのスライドから順に置く（2枚しかない授業は1枚ずつ）
+        const fs = LESSON_FACTS[l.id] || [], fk = fs.findIndex((x, k) => Math.max(0, l.slides.length - fs.length + k) === si);
+        const nr = fk >= 0 ? `<details class="nr"><summary>💡 なるほど！ <span>押すと豆知識が見られる</span></summary><p>${fs[fk]}</p></details>` : '';
+        body.innerHTML = `<div class="slide${sf ? ' has-fig' : ''}"><h3>${s.h}</h3><div class="stext">${hk ? `<div class="hook"><span class="hi">${hk[0]}</span><span><b>身近なところから</b>${hk[1]}</span></div>` : ''}${s.b}${nr}</div><div class="sfig"></div></div>`;
         if (sf) $('.sfig', body).appendChild(sf);
         const last = si >= l.slides.length - 1;
         foot.set({
@@ -199,6 +202,7 @@ registerTool('lessons', {
             store.set('scores', SC);
             body.appendChild(el(`<div class="card ${ok ? 'ok' : 'ng'}" style="text-align:center;padding:16px"><div style="font-size:22px;font-family:var(--font-display);font-weight:800">${score} / ${qs.length} 問 正解</div>
               ${ok ? '<div style="margin:10px 0"><span class="hanko">合格</span></div>' : '<p style="margin:4px 0 0">3問以上で合格。説明を見直してから、もう一度挑戦しよう（選択肢の順番は毎回かわる）。</p>'}</div>`));
+            const fz = LESSON_FACTS[l.id]; if (fz) body.appendChild(el(`<div class="card nrc"><b>💡 なるほど！</b><p class="small" style="margin:4px 0 0">${pick(fz)}</p></div>`));
             if (wrong.length) body.appendChild(el(`<div class="card"><b>まちがえた問題</b><ul class="small" style="margin:4px 0 0;padding-left:1.2em">${wrong.map(([q, c, a, e]) => `<li>${q} → <b>${c[a]}</b>${e ? `<span class="muted">（${e}）</span>` : ''}</li>`).join('')}</ul></div>`));
             foot.set(ok ? { left: { label: '↺ もう一度', fn: test }, center: `<span class="small muted">結果</span>`, right: { label: '⑤ 提出 →', fn: () => show('submit') } }
               : { left: { label: '← ① 説明', fn: () => { si = 0; show('slides'); } }, center: `<span class="small muted">結果</span>`, right: { label: '↺ もう一度', fn: test } });

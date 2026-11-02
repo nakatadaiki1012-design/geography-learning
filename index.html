@@ -562,6 +562,20 @@ button.tag.v { border-color: transparent; }
 .confetti { position: fixed; inset: 0; pointer-events: none; z-index: 100; overflow: hidden; }
 .confetti span { position: absolute; top: -40px; animation: cf-fall 2.2s cubic-bezier(.3,.6,.4,1) forwards; }
 @keyframes cf-fall { to { transform: translate(var(--dx), 110vh) rotate(540deg); opacity: .9; } }
+/* なるほど！（豆知識） */
+.nr { margin: 10px 0 4px; border-radius: 12px; background: color-mix(in srgb, #7a5ec8 10%, var(--panel)); border: 1px solid color-mix(in srgb, #7a5ec8 35%, var(--line)); }
+.nr summary { cursor: pointer; list-style: none; padding: 7px 12px; font-weight: 800; color: #6a4fb8; }
+.nr summary::-webkit-details-marker { display: none; }
+.nr summary span { font-weight: 500; font-size: 12px; color: var(--muted); margin-left: 6px; }
+.nr[open] summary span { display: none; }
+.nr p { margin: 0; padding: 0 12px 10px; animation: pop .3s; }
+.nrc { border-color: color-mix(in srgb, #7a5ec8 40%, var(--line)); background: color-mix(in srgb, #7a5ec8 8%, var(--panel)); }
+.tfq { font-size: 18px; font-weight: 700; line-height: 1.6; padding: 18px 16px; border-radius: 16px; border: 2px solid var(--line); background: var(--panel); margin: 4px 0 12px; }
+.tfq.ok { border-color: var(--ok); animation: pop .35s; }
+.tfq.ng { border-color: var(--shu); animation: shake .35s; }
+.tfb { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+.tfb .btn { padding: 14px 8px; font-size: 17px; }
+@media (max-width: 900px) { .tfq { font-size: 16px; padding: 14px 12px; } }
 /* ゲーム */
 .games .ghead { flex: none; margin-bottom: 8px; }
 .games .gtitle { flex: 1; min-width: 0; text-align: center; font-family: var(--font-display); font-size: 17px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -692,6 +706,7 @@ button.tag.v { border-color: transparent; }
 <script src="js/lesson-terms.js"></script>
 <script src="js/submit.js"></script>
 <script src="js/hooks.js"></script>
+<script src="js/facts.js"></script>
 <script src="js/lesson-view.js"></script>
 <script src="js/main.js"></script>
 </body>

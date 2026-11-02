@@ -23,7 +23,8 @@ registerTool('games', {
     const GAMES = [
       { id: 'hilo', ic: '📊', name: '高い？低い？', d: '2つの国の統計をくらべよう。何連続で当てられる？' },
       { id: 'hint', ic: '🕵️', name: 'ヒントで国あて', d: '少ないヒントで当てるほど高得点。全5問' },
-      { id: 'clock', ic: '🕘', name: '時差で「いま何してる？」', d: '東京の時刻から、世界の人のようすを当てよう。全8問' }
+      { id: 'clock', ic: '🕘', name: '時差で「いま何してる？」', d: '東京の時刻から、世界の人のようすを当てよう。全8問' },
+      { id: 'tf', ic: '⭕', name: 'ほんと？うそ？', d: '地理の豆知識、ほんとかな？ うそかな？ 全10問' }
     ];
     const best = () => store.get('gameBest', {});
     const setBest = (k, v) => { const B = best(); if (!(B[k] >= v)) { B[k] = v; store.set('gameBest', B); return true; } return false; };
@@ -44,7 +45,7 @@ registerTool('games', {
       const g = GAMES.find(x => x.id === id);
       head.innerHTML = `<div class="row" style="flex-wrap:nowrap"><button type="button" class="btn small ghost back">← ゲーム一覧</button><b class="gtitle">${g.ic} ${g.name}</b><span class="gscore"></span></div>`;
       $('.back', head).addEventListener('click', menu);
-      ({ hilo, hint, clock })[id]();
+      ({ hilo, hint, clock, tf })[id]();
     }
     const score = html => { $('.gscore', head).innerHTML = html; };
 
@@ -167,6 +168,37 @@ registerTool('games', {
           $('.gexp', body).innerHTML = `<div class="card ${ok ? 'ok' : 'ng'}"><b>${ok ? '正解！' : `正解は ${right}`}</b><p class="small" style="margin:4px 0 0">東京は東経135°、${P.name}の標準時子午線は${meridianText(P.tz)}。経度15°で1時間なので、時差は${Math.abs(diff)}時間（${diff > 0 ? '東京より進んでいる' : diff < 0 ? '東京より遅れている' : '同じ'}）。${t}時${diff >= 0 ? '＋' : '−'}${Math.abs(diff)}時間＝${dayw}${h}時。（サマータイムは考えない）</p></div><button type="button" class="btn nx">次の問題 →</button>`;
           $('.nx', body).addEventListener('click', () => { qi++; round(); });
         }));
+      };
+      round();
+    }
+
+    // --- ほんと？うそ？（授業の豆知識＝ほんと、まちがいやすい文＝うそ） ---
+    function tf() {
+      const lessons = COURSES.flatMap(c => c.all), truths = [];
+      lessons.forEach(l => (LESSON_FACTS[l.id] || []).forEach(t => truths.push({ t, ok: true, l })));
+      const qs = shuffle(shuffle(truths).slice(0, 5).concat(shuffle(TF_FALSE).slice(0, 5).map(([t, why]) => ({ t, ok: false, why }))));
+      let qi = 0, sc = 0;
+      const round = () => {
+        if (qi >= qs.length) {
+          const nb = setBest('tf', sc); if (sc >= 9) celebrate();
+          score(`${sc} / ${qs.length}`);
+          body.innerHTML = `<div class="card ok" style="text-align:center;padding:16px"><div style="font-size:28px;font-weight:800">${sc} / ${qs.length} 問 正解</div><p>${nb ? '🏆 自己ベスト更新！' : `自己ベスト ${best().tf} 点`}</p></div><button type="button" class="btn again">もう一度あそぶ</button>`;
+          $('.again', body).addEventListener('click', tf);
+          return;
+        }
+        const Q = qs[qi];
+        score(`第 ${qi + 1} 問 / ${qs.length}　正解 ${sc}`);
+        body.innerHTML = `<div class="tfq">${Q.t}</div><div class="tfb"><button type="button" class="btn o">⭕ ほんと</button><button type="button" class="btn ghost x">❌ うそ</button></div><div class="gexp"></div>`;
+        const ans = said => {
+          const ok = said === Q.ok; if (ok) sc++;
+          $$('.tfb button', body).forEach(b => { b.disabled = true; });
+          $('.tfq', body).classList.add(ok ? 'ok' : 'ng');
+          score(`第 ${qi + 1} 問 / ${qs.length}　正解 ${sc}`);
+          $('.gexp', body).innerHTML = `<div class="card ${ok ? 'ok' : 'ng'}"><b>${ok ? '正解！' : 'ざんねん…'}　これは「${Q.ok ? 'ほんと' : 'うそ'}」</b><p class="small" style="margin:4px 0 0">${Q.ok ? `授業「${Q.l.no} ${Q.l.title}」で学べる豆知識。` : `正しくは… ${Q.why}`}</p></div><button type="button" class="btn nx">次の問題 →</button>`;
+          $('.nx', body).addEventListener('click', () => { qi++; round(); });
+        };
+        $('.o', body).addEventListener('click', () => ans(true));
+        $('.x', body).addEventListener('click', () => ans(false));
       };
       round();
     }
