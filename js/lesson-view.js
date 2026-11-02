@@ -174,9 +174,13 @@ registerTool('lessons', {
         const hk = si === 0 && LESSON_HOOK[l.id];
         // 豆知識は後ろのスライドから順に置く（2枚しかない授業は1枚ずつ）
         const fs = LESSON_FACTS[l.id] || [], fk = fs.findIndex((x, k) => Math.max(0, l.slides.length - fs.length + k) === si);
+        // 写真（その授業・そのスライドに合う実際の景色）
+        const lp = (typeof LESSON_PHOTOS !== 'undefined' && LESSON_PHOTOS[l.id] || []).filter(([k]) => k === si).flatMap(([, ids]) => ids).filter(photoById);
+        const pb = lp.length ? `<button type="button" class="btn small ghost pbtn">📷 写真で見る（${lp.length}枚）</button>` : '';
         const nr = fk >= 0 ? `<details class="nr"><summary>💡 なるほど！ <span>押すと豆知識が見られる</span></summary><p>${fs[fk]}</p></details>` : '';
-        body.innerHTML = `<div class="slide${sf ? ' has-fig' : ''}"><h3>${s.h}</h3><div class="stext">${hk ? `<div class="hook"><span class="hi">${hk[0]}</span><span><b>身近なところから</b>${hk[1]}</span></div>` : ''}${s.b}${nr}</div><div class="sfig"></div></div>`;
+        body.innerHTML = `<div class="slide${sf ? ' has-fig' : ''}"><h3>${s.h}</h3><div class="stext">${hk ? `<div class="hook"><span class="hi">${hk[0]}</span><span><b>身近なところから</b>${hk[1]}</span></div>` : ''}${s.b}${pb}${nr}</div><div class="sfig"></div></div>`;
         if (sf) $('.sfig', body).appendChild(sf);
+        if (lp.length) $('.pbtn', body).addEventListener('click', () => openPhotos(lp));
         const last = si >= l.slides.length - 1;
         foot.set({
           left: { label: '← 前へ', disabled: si === 0, fn: () => { si--; slides(); } },

@@ -562,6 +562,40 @@ button.tag.v { border-color: transparent; }
 .confetti { position: fixed; inset: 0; pointer-events: none; z-index: 100; overflow: hidden; }
 .confetti span { position: absolute; top: -40px; animation: cf-fall 2.2s cubic-bezier(.3,.6,.4,1) forwards; }
 @keyframes cf-fall { to { transform: translate(var(--dx), 110vh) rotate(540deg); opacity: .9; } }
+/* 写真資料 */
+.photos .seg { flex-wrap: wrap; }
+.pgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; margin-top: 10px; }
+.pcard { position: relative; display: grid; text-align: left; padding: 0; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; background: var(--panel); transition: transform .15s, box-shadow .15s; }
+.pcard:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,.12); }
+.pcard img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; display: block; background: var(--chip); }
+.pcard .ptx { display: grid; gap: 1px; padding: 7px 10px 9px; }
+.pcard .ptx b { font-size: 14.5px; }
+.pcard .pdata { font-family: var(--font-data); font-size: 12.5px; font-weight: 700; color: var(--accent); }
+.pbadge { position: absolute; left: 8px; top: 8px; padding: 1px 8px; border-radius: 99px; background: rgba(0,0,0,.62); color: #fff; font-size: 12px; font-weight: 700; }
+.plb { position: fixed; inset: 0; z-index: 90; background: rgba(10,14,20,.86); display: grid; place-items: center; padding: 12px; }
+.plb-in { position: relative; width: min(1100px, 100%); max-height: 100%; display: grid; grid-template-rows: minmax(0, 1fr) auto; background: var(--panel); border-radius: 14px; overflow: hidden; }
+.plb-img { position: relative; background: #111; display: grid; place-items: center; min-height: 0; }
+.plb-img img { max-width: 100%; max-height: 68dvh; object-fit: contain; display: block; }
+.plb-p, .plb-n { position: absolute; top: 50%; transform: translateY(-50%); width: 44px; height: 44px; border-radius: 50%; border: 0; background: rgba(255,255,255,.85); font-size: 26px; line-height: 1; }
+.plb-p { left: 8px; } .plb-n { right: 8px; }
+.plb-x { position: absolute; right: 8px; top: 8px; z-index: 2; width: 40px; height: 40px; border-radius: 50%; border: 0; background: rgba(255,255,255,.9); font-size: 24px; line-height: 1; }
+.plb-cap { padding: 10px 14px 12px; overflow-y: auto; max-height: 30dvh; }
+.plb-cap .pt { font-family: var(--font-display); font-size: 18px; }
+.plb-cap p { margin: 4px 0 0; }
+.plb-cap .cr a { color: inherit; }
+.pbtn { margin: 8px 0 2px; }
+.zkph { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 6px; margin: 6px 0; }
+.zkph button { position: relative; padding: 0; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: var(--chip); }
+.zkph img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; display: block; }
+.zkph span { position: absolute; left: 4px; bottom: 4px; padding: 0 6px; border-radius: 99px; background: rgba(0,0,0,.6); color: #fff; font-size: 11px; }
+@media (max-width: 900px) {
+  .pgrid { grid-template-columns: 1fr 1fr; gap: 7px; }
+  .pcard .ptx { padding: 5px 7px 7px; }
+  .pcard .ptx b { font-size: 13px; }
+  .plb { padding: 0; }
+  .plb-in { border-radius: 0; height: 100%; }
+  .plb-img img { max-height: 58dvh; }
+}
 /* なるほど！（豆知識） */
 .nr { margin: 10px 0 4px; border-radius: 12px; background: color-mix(in srgb, #7a5ec8 10%, var(--panel)); border: 1px solid color-mix(in srgb, #7a5ec8 35%, var(--line)); }
 .nr summary { cursor: pointer; list-style: none; padding: 7px 12px; font-weight: 800; color: #6a4fb8; }
@@ -697,6 +731,8 @@ button.tag.v { border-color: transparent; }
 <script src="js/fig-interact.js"></script>
 <script src="js/relief.js"></script>
 <script src="js/relief-gl.js"></script>
+<script src="js/photos.js"></script>
+<script src="js/tool-photos.js"></script>
 <script src="js/tool-zukan.js"></script>
 <script src="js/challenge.js"></script>
 <script src="js/tool-games.js"></script>

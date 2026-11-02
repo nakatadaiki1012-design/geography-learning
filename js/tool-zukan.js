@@ -34,9 +34,11 @@ registerTool('zukan', {
       ui.wrap.innerHTML = '';
       const f = fig(z.f()); if (f) ui.wrap.appendChild(f);
       ui.foot.innerHTML = `<span><b>${z.n}</b>（${S.i + 1} / ${list.length}）</span>`;
-      ui.side.innerHTML = `<h2>${z.n}</h2><p>${z.d}</p>${z.u ? `<div class="card"><b>利用と災害</b><p class="small" style="margin:4px 0 0">${z.u}</p></div>` : ''}
+      const zp = (typeof ZUKAN_PHOTOS !== 'undefined' && ZUKAN_PHOTOS[z.n] || []).filter(photoById);
+      ui.side.innerHTML = `<h2>${z.n}</h2>${zp.length ? `<div class="zkph">${zp.map((id, i) => `<button type="button" data-i="${i}"><img src="${photoById(id).thumb}" alt=""><span>📷 実際の景色</span></button>`).join('')}</div>` : ''}<p>${z.d}</p>${z.u ? `<div class="card"><b>利用と災害</b><p class="small" style="margin:4px 0 0">${z.u}</p></div>` : ''}
         <div class="small muted" style="margin-top:8px">${S.c}の地形</div><div class="chips zkl">${list.map((x, i) => `<button type="button" class="chip" aria-pressed="${i === S.i}" data-i="${i}">${x.n}</button>`).join('')}</div>`;
       $$('.zkl button', ui.side).forEach(b => b.addEventListener('click', () => { S.i = +b.dataset.i; draw(); }));
+      $$('.zkph button', ui.side).forEach(b => b.addEventListener('click', () => openPhotos(zp, +b.dataset.i)));
     }
     draw();
     return () => {};
