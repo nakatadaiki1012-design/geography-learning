@@ -221,6 +221,19 @@ const PHOTOS = [
   "badge": "Cs"
  },
  {
+  "id": "cfb",
+  "cat": "climate",
+  "title": "西岸海洋性気候",
+  "place": "イギリス・デヴォン",
+  "cap": "偏西風と暖流の影響で、冬も夏も気温の差が小さく、一年中少しずつ雨が降る気候。牧草がよく育つので、羊や牛を育てる牧草地が広がる。",
+  "src": "assets/photos/cfb.jpg",
+  "thumb": "assets/photos/cfb_t.jpg",
+  "artist": "Lewis Clarke",
+  "lic": "CC BY-SA 2.0",
+  "page": "https://commons.wikimedia.org/wiki/File:North_Devon_,_Grassy_Countryside_%5E_Sheep_Grazing_-_geograph.org.uk_-_3011610.jpg",
+  "badge": "Cfb"
+ },
+ {
   "id": "cfa",
   "cat": "climate",
   "title": "温暖湿潤気候",
@@ -232,6 +245,19 @@ const PHOTOS = [
   "lic": "CC BY 2.0",
   "page": "https://commons.wikimedia.org/wiki/File:Rice_paddy.jpg",
   "badge": "Cfa"
+ },
+ {
+  "id": "df",
+  "cat": "climate",
+  "title": "亜寒帯（冷帯）湿潤気候",
+  "place": "ロシア・シベリア（サヤン山脈）",
+  "cap": "冬はとても寒く、短い夏がある気候。マツやモミなど針のような葉の木（針葉樹）がそろって生える森林（<b>タイガ</b>）が広がる。木材やパルプの生産地。",
+  "src": "assets/photos/df.jpg",
+  "thumb": "assets/photos/df_t.jpg",
+  "artist": "Vyacheslav Argenberg",
+  "lic": "CC BY 4.0",
+  "page": "https://commons.wikimedia.org/wiki/File:Ergaki,_Taiga_in_Siberia,_Dark_coniferous_forest,_Sayan_Mountains,_Russia.jpg",
+  "badge": "Df"
  },
  {
   "id": "et",
@@ -258,6 +284,19 @@ const PHOTOS = [
   "lic": "CC BY 2.0",
   "page": "https://commons.wikimedia.org/wiki/File:La_Paz_Bolivia.jpg",
   "badge": "H"
+ },
+ {
+  "id": "jan_moscow",
+  "cat": "jan",
+  "title": "モスクワの1月",
+  "place": "ロシア・モスクワ（クレムリン横のアレクサンドロフスキー庭園）",
+  "cap": "亜寒帯（冷帯）の都市。冬は平均気温がマイナスになり、雪におおわれる（写真は冬の夕方）。",
+  "src": "assets/photos/jan_moscow.jpg",
+  "thumb": "assets/photos/jan_moscow_t.jpg",
+  "artist": "Юрий Д.К.",
+  "lic": "CC BY 4.0",
+  "page": "https://commons.wikimedia.org/wiki/File:Moscow_-_2026-2_-_Alexandrovsky_Garden_on_a_winter_evening.jpg",
+  "city": "moscow"
  },
  {
   "id": "jan_sydney",
@@ -297,6 +336,30 @@ const PHOTOS = [
   "lic": "Public domain",
   "page": "https://commons.wikimedia.org/wiki/File:Cairo.jpg",
   "city": "cairo"
+ },
+ {
+  "id": "jan_tromso",
+  "cat": "jan",
+  "title": "トロムソの1月",
+  "place": "ノルウェー・トロムソ（北緯約70度）",
+  "cap": "北極圏（北緯約70度）の町。冬は雪が多く、太陽が一日中のぼらない<b>極夜</b>の時期もある。暖流（北大西洋海流）のおかげで、緯度のわりには寒さがきびしくない。",
+  "src": "assets/photos/jan_tromso.jpg",
+  "thumb": "assets/photos/jan_tromso_t.jpg",
+  "artist": "Gonzalo Malpartida",
+  "lic": "CC BY-SA 3.0",
+  "page": "https://commons.wikimedia.org/wiki/File:Cyclist_in_a_heavy_snowfall_in_Troms%C3%B8,_Norway_(38452212).jpg"
+ },
+ {
+  "id": "stilt",
+  "cat": "life",
+  "title": "高床の家",
+  "place": "マレーシア・サバ州（ガヤ島）",
+  "cap": "暑くて雨が多い地域では、床を高くして風通しをよくし、湿気や洪水・虫をさける。海や川の上に建てる水上集落も多い。",
+  "src": "assets/photos/stilt.jpg",
+  "thumb": "assets/photos/stilt_t.jpg",
+  "artist": "kallerna",
+  "lic": "CC BY-SA 4.0",
+  "page": "https://commons.wikimedia.org/wiki/File:Gaya_Island_Filipino-Moro_refugees_Kampung_Lok_Urai_stilt_houses_Pondo_Village_Kota_Kinabalu_4.jpg"
  },
  {
   "id": "mudbrick",
