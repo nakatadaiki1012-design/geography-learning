@@ -97,6 +97,18 @@ const PHOTOS = [
   "page": "https://commons.wikimedia.org/wiki/File:Mississippi_delta_from_space.jpg"
  },
  {
+  "id": "karst_jp",
+  "cat": "land",
+  "title": "カルスト台地",
+  "place": "山口県・秋吉台",
+  "cap": "石灰岩が雨水（弱い酸性）にとけてできた、日本最大のカルスト台地。夏は一面の草原だが、草の下は石灰岩で、地面にはすりばち状のくぼ地（<b>ドリーネ</b>）が点々とあり、地下には鍾乳洞（秋芳洞）が広がる。水がすぐ地下にしみこむので、川や水田がほとんどない。",
+  "src": "assets/photos/karst_jp.jpg",
+  "thumb": "assets/photos/karst_jp_t.jpg",
+  "artist": "Suhobei（ウィキボヤージュ）",
+  "lic": "Public domain",
+  "page": "https://commons.wikimedia.org/wiki/File:Akiyoshidai.jpg"
+ },
+ {
   "id": "karst_tower",
   "cat": "land",
   "title": "タワーカルスト",
