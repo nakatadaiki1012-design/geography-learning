@@ -338,6 +338,19 @@ const PHOTOS = [
   "city": "cairo"
  },
  {
+  "id": "jan_tokyo",
+  "cat": "jan",
+  "title": "東京の1月",
+  "place": "東京（レインボーブリッジと東京タワー）",
+  "cap": "温暖湿潤気候。冬は北西の季節風が日本海側に雪を降らせたあと、山をこえて乾いた風になるので、太平洋側の東京は晴れて乾燥した日が多い。",
+  "src": "assets/photos/jan_tokyo.jpg",
+  "thumb": "assets/photos/jan_tokyo_t.jpg",
+  "artist": "Jorge Láscar from Australia",
+  "lic": "CC BY 2.0",
+  "page": "https://commons.wikimedia.org/wiki/File:Lascar_Tokyo_skyline_-_Rainbow_bridge_and_Tokyo_tower_(from_the_Giant_Sky_Wheel)_(1299696620).jpg",
+  "city": "tokyo"
+ },
+ {
   "id": "jan_tromso",
   "cat": "jan",
   "title": "トロムソの1月",
