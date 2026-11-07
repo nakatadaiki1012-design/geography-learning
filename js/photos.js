@@ -13,6 +13,18 @@ const PHOTOS = [
   "page": "https://commons.wikimedia.org/wiki/File:Monument_Valley.jpg"
  },
  {
+  "id": "cuesta",
+  "cat": "land",
+  "title": "ケスタ",
+  "place": "アメリカ・ジョージア州のルックアウト山（上空から）",
+  "cap": "写真のまん中を横切るように、<b>長いがけ（急な斜面）</b>が一直線にのびているのがケスタ。かたい地層がゆるくかたむいて重なり、やわらかい層だけがけずられると、片側が急ながけ・反対側がゆるい斜面の丘が並ぶ。パリ盆地や五大湖周辺（ナイアガラの滝もケスタのがけにかかる）が有名。",
+  "src": "assets/photos/cuesta.jpg",
+  "thumb": "assets/photos/cuesta_t.jpg",
+  "artist": "Geof（英語版ウィキペディア）",
+  "lic": "CC BY-SA 3.0",
+  "page": "https://commons.wikimedia.org/wiki/File:Cuesta_-_Lookout_Mountain,_Georgia.png"
+ },
+ {
   "id": "fjord",
   "cat": "land",
   "title": "フィヨルド",
@@ -73,6 +85,18 @@ const PHOTOS = [
   "page": "https://commons.wikimedia.org/wiki/File:Aletschgletscher-Eggishorn.jpg"
  },
  {
+  "id": "fan",
+  "cat": "land",
+  "title": "扇状地",
+  "place": "アメリカ・デスヴァレー（ダンテズ・ビューから）",
+  "cap": "谷の出口から、運ばれた砂や石が<b>扇の形</b>に広がっている（写真右上の白っぽい部分）。山地から平地へ出たところで川の流れが急にゆるみ、砂や石を積もらせてできる。乾燥地では植物が少ないので形がはっきり見える。日本では甲府盆地の果樹園が有名。",
+  "src": "assets/photos/fan.jpg",
+  "thumb": "assets/photos/fan_t.jpg",
+  "artist": "Wilson44691",
+  "lic": "CC0",
+  "page": "https://commons.wikimedia.org/wiki/File:Death_Valley_Alluvial_Fan_from_Dante%27s_View.JPG"
+ },
+ {
   "id": "delta_nile",
   "cat": "land",
   "title": "円弧状三角州",
@@ -131,6 +155,18 @@ const PHOTOS = [
   "artist": "kentin（日本語版ウィキペディア）の写真をもとに作成",
   "lic": "CC BY-SA 3.0",
   "page": "https://commons.wikimedia.org/wiki/File:Amanohashidate.jpg"
+ },
+ {
+  "id": "atoll",
+  "cat": "land",
+  "title": "環礁",
+  "place": "北太平洋・パールアンドハーミーズ環礁（上空から）",
+  "cap": "さんご礁が輪の形に並び、中に浅い海（ラグーン）を囲む地形。浅い所は明るい水色、深い所は濃い青に見える。もとは島のまわりのさんご礁（裾礁→堡礁）で、島がしずんでさんご礁だけが残った。土地が低いため、海面が少し上がるだけで国土がしずむおそれがある（モルディブ・ツバルなど）。",
+  "src": "assets/photos/atoll.jpg",
+  "thumb": "assets/photos/atoll_t.jpg",
+  "artist": "Polhem U.S. Dan, U.S. Fish and Wildlife Service",
+  "lic": "Public domain",
+  "page": "https://commons.wikimedia.org/wiki/File:Aerial_photography_of_Pearl_and_Hermes_atoll.jpg"
  },
  {
   "id": "oxbow",
@@ -285,6 +321,19 @@ const PHOTOS = [
   "badge": "ET"
  },
  {
+  "id": "ef",
+  "cat": "climate",
+  "title": "氷雪気候",
+  "place": "南極大陸（飛行機から）",
+  "cap": "一年中平均気温が0℃未満で、厚い氷（<b>氷床</b>）におおわれた気候。見わたすかぎり白い部分はすべて氷で、山の頂上だけが氷から顔を出している。南極の氷床は厚い所で4000m以上。海に流れ出した氷は棚氷や氷山になる。",
+  "src": "assets/photos/ef.jpg",
+  "thumb": "assets/photos/ef_t.jpg",
+  "artist": "NASA/Christy Hansen",
+  "lic": "Public domain",
+  "page": "https://commons.wikimedia.org/wiki/File:A_view_of_Antarctica%E2%80%99s_ice_sheet_and_mountains.jpeg",
+  "badge": "EF"
+ },
+ {
   "id": "h",
   "cat": "climate",
   "title": "高山気候",
@@ -385,6 +434,18 @@ const PHOTOS = [
   "artist": "kallerna",
   "lic": "CC BY-SA 4.0",
   "page": "https://commons.wikimedia.org/wiki/File:Gaya_Island_Filipino-Moro_refugees_Kampung_Lok_Urai_stilt_houses_Pondo_Village_Kota_Kinabalu_4.jpg"
+ },
+ {
+  "id": "ger",
+  "cat": "life",
+  "title": "ゲル（移動式住居）",
+  "place": "モンゴルの草原",
+  "cap": "モンゴルなどの遊牧民の家（ゲル）。木の骨組みにフェルト（羊の毛）をかぶせてつくり、家畜とともに移動するときは分解して運べる。",
+  "src": "assets/photos/ger.jpg",
+  "thumb": "assets/photos/ger_t.jpg",
+  "artist": "Mark Fischer",
+  "lic": "CC BY-SA 2.0",
+  "page": "https://commons.wikimedia.org/wiki/File:Mongolian_Ger.jpg"
  },
  {
   "id": "mudbrick",
